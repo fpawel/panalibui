@@ -12,6 +12,7 @@ type
         Button1: TButton;
         Label1: TLabel;
         procedure Button1Click(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     private
         { Private declarations }
     public
@@ -43,17 +44,24 @@ begin
     cd.cbData := Length(ptr_bytes);
     cd.lpData := ptr_bytes;
 
-    // ѕосылаем сообщение серверному приложению RCLOCK
-    SendMessage(hWndServer, WM_COPYDATA, integer(self.Handle), integer(@cd));
+    //SendMessage(hWndServer, WM_COPYDATA, integer(self.Handle), integer(@cd));
+    SendMessage(hWndServer, WM_COPYDATA, 100, integer(@cd));
 
 end;
 
-function ArrayToString(const a: array of Char): string;
+
+
+procedure TPanalibuiMainForm.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+var
+    hWndServer: HWND;
 begin
-  if Length(a)>0 then
-    SetString(Result, PChar(@a[0]), Length(a))
-  else
-    Result := '';
+    hWndServer := FindWindow('PanalibHostAppWindowClass', nil);
+    if IsWindow(hWndServer) then
+    begin
+        SendMessage(hWndServer, WM_CLOSE, 0, 0);
+    end;
+
 end;
 
 procedure TPanalibuiMainForm.WndProc(var Message: TMessage);
@@ -67,7 +75,7 @@ begin
         cd := PCOPYDATASTRUCT(Message.LParam);
         SetString(str, PWideChar(cd.lpData), cd.cbData div 2);
         Label1.Font.Color := clNavy;
-        Label1.Caption := TimeToStr(Now) + ' ' + str;
+        Label1.Caption := TimeToStr(Now) + ' ' + inttoStr(Message.WParam) + ' ' +  str;
     end;
 end;
 
