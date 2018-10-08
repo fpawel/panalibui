@@ -8,13 +8,39 @@ uses
     Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls;
 
 type
+    THostAppCommand = (cmdError, cmdConfigComport, cmdConfigNetwork,
+      cmdConfigVars, cmdStartReadVars, cmdStopReadVars, cmdReadVar);
+
+    THostAppMessage = (msgPeer, msgStartReadVars, msgStopReadVars);
+
+    TPlace = class
+        FAddr: integer;
+        FUnchecked: boolean;
+    end;
+
+    TVar = class
+        FVar: integer;
+        FUnchecked: boolean;
+    end;
+
+    TComportConfig = class
+    public
+        FName: string;
+        FBoud: integer;
+        FReadTimeout: integer;
+        FReadByteTimeout: integer;
+        FMaxAttemptsRead: integer;
+
+    end;
+
     TPanalibuiMainForm = class(TForm)
         Button1: TButton;
         Label1: TLabel;
         procedure Button1Click(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+        procedure FormCreate(Sender: TObject);
     private
         { Private declarations }
+        hWndServer: HWND;
     public
         { Public declarations }
         procedure WndProc(var Message: TMessage); override;
@@ -27,11 +53,49 @@ implementation
 
 {$R *.dfm}
 
+uses rest.json, runhostapp, json;
+
+procedure TPanalibuiMainForm.FormCreate(Sender: TObject);
+begin
+    hWndServer := FindWindow('PanalibHostAppWindowClass', nil);
+    if hWndServer = 0 then
+        raise Exception.Create('server not found');
+    if SendMessage(hWndServer, WM_USER + integer(msgPeer), 0, 0) = 0 then
+        raise Exception.Create('server is not responding');
+
+end;
+
+procedure TPanalibuiMainForm.WndProc(var Message: TMessage);
+var
+    cd: PCOPYDATASTRUCT;
+    strResponse: string;
+    cmd: THostAppCommand;
+    x: TComportConfig;
+begin
+    inherited;
+    if Message.Msg = WM_COPYDATA then
+    begin
+        cd := PCOPYDATASTRUCT(Message.LParam);
+        cmd := THostAppCommand(Message.WParam);
+        case cmd of
+            cmdConfigComport:
+                begin
+                    SetString(strResponse, PWideChar(cd.lpData),
+                      cd.cbData div 2);
+                    x := TJson.JsonToObject<TComportConfig>(strResponse);
+                    x.Free;
+                    Message.Result := 1;
+                end;
+        end;
+    end;
+end;
+
 procedure TPanalibuiMainForm.Button1Click(Sender: TObject);
 var
     hWndServer: HWND;
     cd: COPYDATASTRUCT;
     ptr_bytes: TBytes;
+    r:LRESULT;
 begin
     hWndServer := FindWindow('PanalibHostAppWindowClass', nil);
     if hWndServer = 0 then
@@ -44,39 +108,10 @@ begin
     cd.cbData := Length(ptr_bytes);
     cd.lpData := ptr_bytes;
 
-    //SendMessage(hWndServer, WM_COPYDATA, integer(self.Handle), integer(@cd));
-    SendMessage(hWndServer, WM_COPYDATA, 100, integer(@cd));
+    // SendMessage(hWndServer, WM_COPYDATA, integer(self.Handle), integer(@cd));
+    if SendMessage(hWndServer, WM_COPYDATA, Handle, integer(@cd)) = 0 then
+        raise Exception.Create('server is not responding');
 
-end;
-
-
-
-procedure TPanalibuiMainForm.FormClose(Sender: TObject;
-  var Action: TCloseAction);
-var
-    hWndServer: HWND;
-begin
-    hWndServer := FindWindow('PanalibHostAppWindowClass', nil);
-    if IsWindow(hWndServer) then
-    begin
-        SendMessage(hWndServer, WM_CLOSE, 0, 0);
-    end;
-
-end;
-
-procedure TPanalibuiMainForm.WndProc(var Message: TMessage);
-var
-    cd: PCOPYDATASTRUCT;
-    str:string;
-begin
-    inherited;
-    if Message.Msg = WM_COPYDATA then
-    begin
-        cd := PCOPYDATASTRUCT(Message.LParam);
-        SetString(str, PWideChar(cd.lpData), cd.cbData div 2);
-        Label1.Font.Color := clNavy;
-        Label1.Caption := TimeToStr(Now) + ' ' + inttoStr(Message.WParam) + ' ' +  str;
-    end;
 end;
 
 end.

@@ -2,7 +2,9 @@ program panalibui;
 
 uses
   Vcl.Forms,
-  UnitPanalibuiMainForm in 'UnitPanalibuiMainForm.pas' {PanalibuiMainForm};
+  UnitPanalibuiMainForm in 'UnitPanalibuiMainForm.pas' {PanalibuiMainForm},
+  findproc in 'utils\findproc.pas',
+  runhostapp in 'runhostapp.pas';
 
 {$R *.res}
 
