@@ -83,7 +83,8 @@ implementation
 
 {$R *.dfm}
 
-uses serverapp_msg, rest.json, runhostapp, json, vclutils, model_initdata, model_config, PropertiesFormUnit;
+uses serverapp_msg, rest.json, runhostapp, json, vclutils, model_initdata, model_config, PropertiesFormUnit,
+  UnitFormReadVars;
 
 procedure TPanalibuiMainForm.FormCreate(Sender: TObject);
 begin
@@ -109,6 +110,7 @@ begin
                       cd.cbData div 2);
                     x := TJson.JsonToObject<TInitData>(strResponse);
                     PropertiesForm.SetConfig(x.FConfig);
+                    FormReadVars.Init(x);
                     // x.Free;
                     Message.Result := 1;
                 end;
@@ -129,6 +131,14 @@ begin
         begin
             ServerApp.MustSendJSON(self.Handle, dmsgSetsProp, p);
         end;
+        Show;
+    end;
+
+    with FormReadVars do
+    begin
+        BorderStyle := bsNone;
+        Align := alClient;
+        Parent := TabSheetVars;
         Show;
     end;
 
