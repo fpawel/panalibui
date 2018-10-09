@@ -104,6 +104,32 @@
         </DCCReference>
         <DCCReference Include="utils\findproc.pas"/>
         <DCCReference Include="runhostapp.pas"/>
+        <DCCReference Include="utils\vclutils.pas"/>
+        <DCCReference Include="models\model_config.pas"/>
+        <DCCReference Include="utils\stringgridutils.pas"/>
+        <DCCReference Include="utils\stringutils.pas"/>
+        <DCCReference Include="settings\PropertyValueEditors.pas"/>
+        <DCCReference Include="utils\listports.pas"/>
+        <DCCReference Include="settings\PropertiesFormUnit.pas">
+            <Form>PropertiesForm</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="models\model_initdata.pas"/>
+        <DCCReference Include="models\model_network.pas"/>
+        <DCCReference Include="UnitFormReadVars.pas">
+            <Form>FormReadVars</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="UnitFormPopup.pas">
+            <Form>FormPopup</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="UnitServerApp.pas">
+            <Form>ServerApp</Form>
+            <FormType>dfm</FormType>
+            <DesignClass>TDataModule</DesignClass>
+        </DCCReference>
+        <DCCReference Include="messages\serverapp_msg.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
