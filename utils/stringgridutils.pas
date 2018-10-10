@@ -15,6 +15,8 @@ procedure DrawCheckbox(par_ctrl:TWinControl; cnv:TCanvas; Rect: TRect; checked:b
 procedure StringGrid_DrawCellBounds(cnv: TCanvas; acol, arow: integer;
   Rect: TRect);
 
+procedure StringGrid_RedrawCol(grd: TStringGrid; acol: integer);
+
 
 implementation
 
@@ -52,6 +54,16 @@ begin
                 Cells[acol, arow] := Cells[acol, arow];
 end;
 
+procedure StringGrid_RedrawCol(grd: TStringGrid; acol: integer);
+var
+    I: integer;
+begin
+    with grd do
+        if (acol >= 0) AND (acol < colcount) then
+            for I := 0 to rowcount - 1 do
+                Cells[acol,i] := Cells[acol,i];
+end;
+
 procedure StringGrid_RedrawCell(grd: TStringGrid; acol, arow: integer);
 begin
     with grd do
@@ -84,6 +96,7 @@ end;
 procedure StringGrid_DrawCheckBoxCell(grd: TStringGrid; acol, arow: integer;
   Rect: TRect; State: TGridDrawState; checked: boolean);
 begin
+    grd.Canvas.FillRect(Rect);
     DrawCheckbox(grd,grd.Canvas, rect, checked, grd.Cells[acol, arow]);
 end;
 

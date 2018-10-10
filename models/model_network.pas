@@ -9,9 +9,14 @@ end;
 
 type TDeviceVar = class
     FVar : integer;
-    FName : string;
     FUnchecked : boolean;
 end;
+
+type TNetwork = class
+    FVars : TArray<TDeviceVar>;
+    FPlaces : TArray<TNetworkPlace>;
+end;
+
 
 type TReadVar = class
     FPlace : integer;
@@ -19,27 +24,6 @@ type TReadVar = class
     FValue: double;
     FError: string;
 end;
-
-
-(*
-struct {
-				Place, VarNumber int
-				Value            float64
-				Error            string
-			}
-
-
-type Place struct {
-	Addr      modbus.Addr `json:"addr"`
-	Unchecked bool        `json:",omitempty"`
-}
-
-type Var struct {
-	Var       modbus.Var `json:"var"`
-	Name      string     `json:"name"`
-	Unchecked bool       `json:"unchecked,omitempty"`
-}
-*)
 
 implementation
 

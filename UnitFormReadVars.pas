@@ -6,35 +6,43 @@ uses
     Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
     System.Classes, Vcl.Graphics,
     Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Grids,
-    Vcl.ExtCtrls, System.Generics.collections, model_initdata, model_network;
+    Vcl.ExtCtrls, System.Generics.collections, model_network;
 
 type
+    TStringGridEx = class helper for TStringGrid
+    public
+        function GetInplaceEditor(): TInplaceEdit;
+    end;
+
     TFormReadVars = class(TForm)
-        StringGrid2: TStringGrid;
-        CheckBox2: TCheckBox;
-        procedure CheckBox2Click(Sender: TObject);
-        procedure StringGrid2DblClick(Sender: TObject);
-        procedure StringGrid2DrawCell(Sender: TObject; ACol, ARow: Integer;
+        StringGrid1: TStringGrid;
+        procedure StringGrid1DblClick(Sender: TObject);
+        procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
           Rect: TRect; State: TGridDrawState);
-        procedure StringGrid2KeyPress(Sender: TObject; var Key: Char);
+        procedure StringGrid1KeyPress(Sender: TObject; var Key: Char);
         procedure FormCreate(Sender: TObject);
-        procedure StringGrid2SelectCell(Sender: TObject; ACol, ARow: Integer;
+        procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer;
           var CanSelect: Boolean);
+        procedure StringGrid1MouseDown(Sender: TObject; Button: TMouseButton;
+          Shift: TShiftState; X, Y: Integer);
+        procedure StringGrid1SetEditText(Sender: TObject; ACol, ARow: Integer;
+          const Value: string);
     private
         { Private declarations }
-
+        Last_Edited_Col, Last_Edited_Row: Integer;
         procedure SetRowChecked(row: Integer; v: Boolean);
         procedure ToggleRowChecked(row: Integer);
+        procedure ToggleColChecked(col: Integer);
 
     public
         { Public declarations }
         FPlace: Integer;
         FVarIndex: Integer;
         FErrors: TDictionary<string, string>;
-        FVars: TArray<TDeviceVar>;
+        FNetwork: TNetwork;
 
-        procedure Init(d: TInitData);
-        procedure HandleReadVar(x: TReadVar);
+        procedure Init(ANetwork: TNetwork);
+        procedure HandleReadVar(X: TReadVar);
         procedure reset;
     end;
 
@@ -47,9 +55,14 @@ implementation
 
 uses stringgridutils, stringutils, UnitFormPopup, UnitServerApp, serverapp_msg;
 
+function TStringGridEx.GetInplaceEditor: TInplaceEdit;
+begin
+    Result := InplaceEditor; // get access to InplaceEditor
+end;
+
 function col2place(col: Integer): Integer;
 begin
-    Result := col - 2;
+    Result := col - 1;
 end;
 
 function row2var(row: Integer): Integer;
@@ -59,7 +72,7 @@ end;
 
 function place2col(place: Integer): Integer;
 begin
-    Result := place + 2;
+    Result := place + 1;
 end;
 
 function var2row(varIndex: Integer): Integer;
@@ -81,27 +94,20 @@ procedure TFormReadVars.FormCreate(Sender: TObject);
 begin
     FPlace := -1;
     FVarIndex := -1;
-    with CheckBox2 do
-    begin
-        Visible := false;
-        Caption := '';
-        Width := 15;
-        Height := 15;
-    end;
     FErrors := TDictionary<string, string>.Create;
 
 end;
 
-procedure TFormReadVars.StringGrid2DblClick(Sender: TObject);
+procedure TFormReadVars.StringGrid1DblClick(Sender: TObject);
 var
     r: TRect;
     pt: TPoint;
     place, varInd: Integer;
     k: string;
 begin
-    varInd := row2var(StringGrid2.row);
-    place := col2place(StringGrid2.col);
-    with StringGrid2 do
+    varInd := row2var(StringGrid1.row);
+    place := col2place(StringGrid1.col);
+    with StringGrid1 do
     begin
         k := pvkk(col, row);
         r := CellRect(col, row);
@@ -113,22 +119,22 @@ begin
         begin
             RichEdit1.Font.Color := clRed;
             RichEdit1.Text := FErrors[k];
-            Left := pt.x + 5;
+            Left := pt.X + 5;
             Top := pt.Y + 5;
             Show;
         end;
 
 end;
 
-procedure TFormReadVars.StringGrid2DrawCell(Sender: TObject;
+procedure TFormReadVars.StringGrid1DrawCell(Sender: TObject;
   ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
 var
     grd: TStringGrid;
     cnv: TCanvas;
-    x, Y: Integer;
+    X, Y: Integer;
     txt_width, txt_height: double;
     s: string;
-    Checked: Boolean;
+    Checked_col, Checked_row: Boolean;
     // pv: RProductVarOrder;
     place, var_ind: Integer;
 const
@@ -142,22 +148,25 @@ begin
     if (ACol = 0) and (ARow > 0) then
         s := '';
     cnv := grd.Canvas;
-    cnv.Font := grd.Font;
+    cnv.Font.Assign(self.Font);
     if (ARow > 0) and (ACol = 1) then
     begin
-        cnv.Font.Size := 10;
         cnv.Font.Color := clNavy;
     end;
 
-    Checked := false;
+    Checked_row := false;
     if var_ind > -1 then
-        Checked := not FVars[var_ind].FUnchecked;
+        Checked_row := not FNetwork.FVars[var_ind].FUnchecked;
+
+    Checked_col := false;
+    if place > -1 then
+        Checked_col := not FNetwork.FPlaces[place].FUnchecked;
 
     if gdFixed in State then
         cnv.Brush.Color := cl3DLight
     else if gdSelected in State then
         cnv.Brush.Color := clGradientInactiveCaption
-    else if Checked then
+    else if Checked_row and Checked_col then
         cnv.Brush.Color := grd.Color
     else
         cnv.Brush.Color := clBtnFace;
@@ -167,13 +176,7 @@ begin
         cnv.Brush.Color := clInfoBk;
 
     if FErrors.ContainsKey(pvk(place, var_ind)) then
-    begin
-        cnv.Brush.Color := clBlack;
-        cnv.Font.Color := clYellow;
-        cnv.Font.Size := 10;
-        if gdSelected in State then
-            cnv.Brush.Color := clGray;
-    end;
+        cnv.Font.Color := clRed;
 
     if cnv.TextWidth(s) + 3 > Rect.Width then
         s := cut_str(s, cnv, Rect.Width);
@@ -181,24 +184,27 @@ begin
     txt_width := cnv.TextWidth(s);
     txt_height := cnv.TextHeight(s);
 
-    x := Rect.Left + 3;
+    X := Rect.Left + 3;
     // x := Rect.left + round((Rect.Width - txt_width) / 2.0);
 
     if (ARow > 0) AND (ACol <> 1) then
-        x := Rect.Right - 3 - round(txt_width);
+        X := Rect.Right - 3 - round(txt_width);
 
     Y := Rect.Top + round((Rect.Height - txt_height) / 2.0);
 
-    cnv.TextRect(Rect, x, Y, s);
+    cnv.TextRect(Rect, X, Y, s);
 
     if (ACol = 0) and (ARow > 0) then
-        StringGrid_DrawCheckBoxCell(grd, ACol, ARow, Rect, State, Checked);
+        StringGrid_DrawCheckBoxCell(grd, ACol, ARow, Rect, State, Checked_row);
+
+    if (ARow = 0) and (ACol > 0) then
+        StringGrid_DrawCheckBoxCell(grd, ACol, ARow, Rect, State, Checked_col);
 
     StringGrid_DrawCellBounds(cnv, ACol, ARow, Rect);
 
 end;
 
-procedure TFormReadVars.StringGrid2KeyPress(Sender: TObject; var Key: Char);
+procedure TFormReadVars.StringGrid1KeyPress(Sender: TObject; var Key: Char);
 var
     g: TStringGrid;
     ARow: Integer;
@@ -208,94 +214,167 @@ begin
     g := Sender as TStringGrid;
     if (g.row > 0) AND (ord(Key) in [32, 27]) then
     begin
-        v := FVars[row2var(g.Selection.Top)].FUnchecked;
+        v := FNetwork.FVars[row2var(g.Selection.Top)].FUnchecked;
         for ARow := g.Selection.Top to g.Selection.Bottom do
             SetRowChecked(ARow, not v);
     end;
 
     if ord(Key) = 1 then
     begin
-        v := FVars[row2var(g.Selection.Top)].FUnchecked;
-        for ARow := 2 to StringGrid2.RowCount - 1 do
+        v := FNetwork.FVars[row2var(g.Selection.Top)].FUnchecked;
+        for ARow := 2 to StringGrid1.RowCount - 1 do
             SetRowChecked(ARow, not v);
 
     end;
 
 end;
 
-procedure TFormReadVars.StringGrid2SelectCell(Sender: TObject;
+procedure TFormReadVars.StringGrid1MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+    ACol, ARow: Integer;
+    Rect: TRect;
+begin
+    if (GetAsyncKeyState(VK_LBUTTON) >= 0) then
+        exit;
+    StringGrid1.MouseToCell(X, Y, ACol, ARow);
+
+    Rect := StringGrid1.CellRect(ACol, ARow);
+
+    if ((ACol = 0) or (ARow = 0)) and (X > (Rect.Right + Rect.Left) div 2) then
+    begin
+        with StringGrid1 do
+        begin
+            fixedrows := 0;
+            col := ACol;
+            row := ARow;
+            Options := Options + [goEditing];
+            EditorMode := true;
+            with GetInplaceEditor() do
+            begin
+                SelStart := 0;
+                SelLength := Length(Cells[ACol, ARow]);
+            end;
+
+        end;
+
+    end
+    else
+    begin
+        if (ACol = 0) AND (ARow > 0) then
+        begin
+            ToggleRowChecked(ARow);
+            StringGrid_RedrawRow(StringGrid1, ARow);
+        end;
+
+        if (ARow = 0) AND (ACol > 0) then
+        begin
+            ToggleColChecked(ACol);
+            StringGrid_RedrawCol(StringGrid1, ACol);
+        end;
+    end;
+end;
+
+procedure TFormReadVars.StringGrid1SelectCell(Sender: TObject;
   ACol, ARow: Integer; var CanSelect: Boolean);
 var
     r: TRect;
     grd: TStringGrid;
 
 begin
-    grd := Sender as TStringGrid;
-
-    case ACol of
-        0:
-            begin
-                r := grd.CellRect(ACol, ARow);
-                r.Left := r.Left + grd.Left + 10;
-                r.Right := r.Right + grd.Left;
-                r.Top := r.Top + grd.Top + 7;
-                r.Bottom := r.Bottom + grd.Top;
-
-                with CheckBox2 do
-                begin
-
-                    OnClick := nil;
-                    if GetAsyncKeyState(VK_LBUTTON) < 0 then
-                        ToggleRowChecked(ARow);
-
-                    Checked := not FVars[row2var(ARow)].FUnchecked;
-                    OnClick := CheckBox2Click;
-
-                    Left := r.Left - 6;
-                    Top := r.Top - 3;
-                    Visible := true;
-                end;
-            end;
-
-    else
-        begin
-            CheckBox2.Visible := false;
-
+    with Sender as TStringGrid do
+    begin
+        // When selecting a cell
+        if EditorMode then
+        begin // It was a cell being edited
+            EditorMode := false; // Deactivate the editor
+            // Do an extra check if the LastEdited_ACol and LastEdited_ARow are not -1 already.
+            // This is to be able to use also the arrow-keys up and down in the Grid.
+            if (Last_Edited_Col <> -1) and (Last_Edited_Row <> -1) then
+                StringGrid1SetEditText(grd, Last_Edited_Col, Last_Edited_Row,
+                  Cells[Last_Edited_Col, Last_Edited_Row]);
+            // Just make the call
         end;
+        // Do whatever else wanted
+        Options := Options - [goEditing];
+
     end;
 
 end;
 
-procedure TFormReadVars.CheckBox2Click(Sender: TObject);
+procedure TFormReadVars.StringGrid1SetEditText(Sender: TObject;
+  ACol, ARow: Integer; const Value: string);
+var
+    s: string;
+    v: extended;
+    n: Integer;
 begin
-    SetRowChecked(StringGrid2.row, not CheckBox2.Checked);
-    StringGrid2.SetFocus;
+
+    With StringGrid1 do
+        // Fired on every change
+        if Not EditorMode // goEditing must be 'True' in Options
+        then
+        begin // Only after user ends editing the cell
+            Last_Edited_Col := -1; // Indicate no cell is edited
+            Last_Edited_Row := -1; // Indicate no cell is edited
+            // Do whatever wanted after user has finish editing a cell
+            fixedrows := 1;
+            if ARow = 0 then
+            begin
+                if TryStrToInt(Value, n) and (n > 0) and (n < 256) then
+                    ServerApp.MustSendUserMsg(msgSetAddr, col2place(ACol), n)
+                else
+                    ServerApp.MustSendUserMsg(msgPeer, 0, 0);
+            end;
+
+            if ACol = 0 then
+            begin
+                if TryStrToInt(Value, n) and (n > -1) then
+                    ServerApp.MustSendUserMsg(msgSetvar, row2var(ARow), n)
+                else
+                    ServerApp.MustSendUserMsg(msgPeer, 0, 0);
+            end;
+        end
+        else
+        begin // The cell is being editted
+            Last_Edited_Col := ACol; // Remember column of cell being edited
+            Last_Edited_Row := ARow; // Remember row of cell being edited
+        end;
+
 end;
 
-procedure TFormReadVars.Init(d: TInitData);
+procedure TFormReadVars.Init(ANetwork: TNetwork);
 var
     ACol, ARow, place, varInd: Integer;
 begin
-    FVars := d.FVars;
-    FErrors.Clear;
-    with StringGrid2 do
+    if Assigned(FNetwork) then
     begin
-        RowCount := length(d.FVars) + 1;
-        ColCount :=  length(d.FNetwork)  + 2;
-        FixedRows := 1;
+        for place := 0 to Length(FNetwork.FPlaces) - 1 do
+            FNetwork.FPlaces[place].Free;
+        for varInd := 0 to Length(FNetwork.FVars) - 1 do
+            FNetwork.FVars[varInd].Free;
+        FNetwork.Free;
+    end;
+
+    FNetwork := ANetwork;
+    FErrors.Clear;
+    with StringGrid1 do
+    begin
+        RowCount := Length(FNetwork.FVars) + 1;
+        fixedrows := 1;
+        ColCount := Length(FNetwork.FPlaces) + 1;
         Cells[0, 0] := '№';
         Cells[1, 0] := 'Параметр';
-        for varInd := 0 to length(d.FVars) - 1 do
+        for varInd := 0 to Length(FNetwork.FVars) - 1 do
         begin
             ARow := var2row(varInd);
-            Cells[0, ARow] := inttostr(d.FVars[varInd].FVar);
-            Cells[1, ARow] := d.FVars[varInd].FName;
+            Cells[0, ARow] := inttostr(FNetwork.FVars[varInd].FVar);
         end;
 
-        for place := 0 to length(d.FNetwork)-1 do
+        for place := 0 to Length(FNetwork.FPlaces) - 1 do
         begin
             ACol := place2col(place);
-            Cells[ACol, 0] := inttostr(d.FNetwork[place].FAddr);
+            Cells[ACol, 0] := inttostr(FNetwork.FPlaces[place].FAddr);
         end;
     end;
 end;
@@ -309,48 +388,64 @@ begin
     FPlace := -1;
     FVarIndex := -1;
     if (prev_place >= 0) and (prev_var >= 0) then
-        StringGrid_RedrawCell(StringGrid2, place2col(prev_place),
+        StringGrid_RedrawCell(StringGrid1, place2col(prev_place),
           var2row(prev_var));
 
     if (FPlace >= 0) and (FVarIndex >= 0) then
-        StringGrid_RedrawCell(StringGrid2, place2col(FPlace),
+        StringGrid_RedrawCell(StringGrid1, place2col(FPlace),
           var2row(FVarIndex));
 
 end;
 
-procedure TFormReadVars.HandleReadVar(x: TReadVar);
+procedure TFormReadVars.HandleReadVar(X: TReadVar);
 var
     prev_place, prev_var: Integer;
 begin
     prev_place := FPlace;
     prev_var := FVarIndex;
-    FPlace := x.FPlace;
-    FVarIndex := x.FVarIndex;
-    if x.FError <>'' then
-        FErrors.AddOrSetValue(pvk(FPlace, FVarIndex), x.FError);
-
-    StringGrid2.Cells[place2col(FPlace), var2row(FVarIndex)] := floattostr(x.FValue);
+    FPlace := X.FPlace;
+    FVarIndex := X.FVarIndex;
+    if X.FError <> '' then
+    begin
+        FErrors.AddOrSetValue(pvk(FPlace, FVarIndex), X.FError);
+        StringGrid1.Cells[place2col(FPlace), var2row(FVarIndex)] := X.FError;
+    end
+    else
+    begin
+        FErrors.Remove(pvk(FPlace, FVarIndex));
+        StringGrid1.Cells[place2col(FPlace), var2row(FVarIndex)] :=
+          floattostr(X.FValue);
+    end;
 
     if (prev_place >= 0) and (prev_var >= 0) then
-        StringGrid_RedrawCell(StringGrid2, place2col(prev_place),
+        StringGrid_RedrawCell(StringGrid1, place2col(prev_place),
           var2row(prev_var));
 
     if (FPlace >= 0) and (FVarIndex >= 0) then
-        StringGrid_RedrawCell(StringGrid2, place2col(FPlace),
+        StringGrid_RedrawCell(StringGrid1, place2col(FPlace),
           var2row(FVarIndex));
 
 end;
 
 procedure TFormReadVars.SetRowChecked(row: Integer; v: Boolean);
 begin
-    FVars[row2var(row)].FUnchecked := v;
-    ServerApp.SendMsg(msgSetVarChecked, row2var(row), lParam(v) );
-    StringGrid_RedrawRow(StringGrid2, row);
+    FNetwork.FVars[row2var(row)].FUnchecked := v;
+    ServerApp.SendMsg(msgSetVarChecked, row2var(row), lParam(v));
+    StringGrid_RedrawRow(StringGrid1, row);
 end;
 
 procedure TFormReadVars.ToggleRowChecked(row: Integer);
 begin
-    SetRowChecked(row, not FVars[row2var(row)].FUnchecked);
+    SetRowChecked(row, not FNetwork.FVars[row2var(row)].FUnchecked);
+end;
+
+procedure TFormReadVars.ToggleColChecked(col: Integer);
+begin
+    FNetwork.FPlaces[col2place(col)].FUnchecked := not FNetwork.FPlaces
+      [col2place(col)].FUnchecked;
+    ServerApp.SendMsg(msgSetPlaceChecked, col2place(col),
+      lParam(FNetwork.FPlaces[col2place(col)].FUnchecked));
+    StringGrid_RedrawCol(StringGrid1, col);
 
 end;
 

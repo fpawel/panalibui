@@ -2,7 +2,7 @@
 
 interface
 
-uses Vcl.Graphics;
+uses Vcl.Graphics, Winapi.Windows;
 
 function str_validate_decimal_separator(s: string): string;
 function str_to_float(s: string): Double;
@@ -10,10 +10,17 @@ function str_replace_unicode_chars(s: string): string;
 function inttostr2(n: integer): string;
 function cut_str(s:string;c:TCanvas; w:integer):string;
 
+function StrFromCopydata(cd: PCOPYDATASTRUCT):string;
+
 implementation
 
 
 uses System.SysUtils;
+
+function StrFromCopydata(cd: PCOPYDATASTRUCT):string;
+begin
+    SetString(result, PWideChar(cd.lpData), cd.cbData div 2);
+end;
 
 function inttostr2(n: integer): string;
 begin

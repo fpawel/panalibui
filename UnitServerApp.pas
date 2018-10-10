@@ -21,6 +21,8 @@ type
 
         procedure MustSendStr(sourceHWND:HWND; msg :TServerAppDataMsg; data:string);
         procedure MustSendJSON(sourceHWND:HWND; msg:TServerAppDataMsg; data:TObject);
+
+        procedure CloseServer;
     end;
 
 var
@@ -38,6 +40,11 @@ procedure TServerApp.DataModuleCreate(Sender: TObject);
 begin
     init_hWndServer;
 
+end;
+
+procedure TServerApp.CloseServer;
+begin
+    SendMessage(hWndServer, WM_CLOSE, 0, 0);
 end;
 
 procedure TServerApp.MustSendMessage(Msg: UINT; wParam: WPARAM; lParam: LPARAM);

@@ -33,7 +33,7 @@ object PanalibuiMainForm: TPanalibuiMainForm
     Top = 32
     Width = 1027
     Height = 544
-    ActivePage = TabSheetProducts
+    ActivePage = TabSheetVars
     Align = alClient
     MultiLine = True
     OwnerDraw = True
@@ -43,49 +43,63 @@ object PanalibuiMainForm: TPanalibuiMainForm
     TabWidth = 50
     OnChange = PageControlMainChange
     OnDrawTab = PageControlMainDrawTab
-    object TabSheetProducts: TTabSheet
-      Caption = #1055#1088#1080#1073#1086#1088#1099
-      DesignSize = (
-        919
-        536)
-      object StringGrid1: TStringGrid
-        Left = 0
-        Top = 0
-        Width = 919
-        Height = 536
-        Align = alClient
-        BorderStyle = bsNone
-        ColCount = 4
-        DefaultDrawing = False
-        FixedColor = clBackground
-        FixedCols = 0
-        RowCount = 1
-        FixedRows = 0
-        GradientEndColor = clBlack
-        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing]
-        TabOrder = 1
-        ColWidths = (
-          64
-          64
-          64
-          64)
-        RowHeights = (
-          24)
-      end
-      object CheckBox1: TCheckBox
-        Left = 88
-        Top = 273
-        Width = 97
-        Height = 17
-        Anchors = []
-        Caption = 'CheckBox1'
-        TabOrder = 0
-        Visible = False
-      end
-    end
     object TabSheetVars: TTabSheet
       Caption = #1054#1087#1088#1086#1089
       ImageIndex = 2
+      object Panel1: TPanel
+        Left = 832
+        Top = 0
+        Width = 87
+        Height = 536
+        Align = alRight
+        BevelOuter = bvNone
+        TabOrder = 0
+        object Button1: TButton
+          Left = 8
+          Top = 72
+          Width = 75
+          Height = 25
+          Caption = '+ '#1088#1077#1075'.'
+          TabOrder = 0
+          OnClick = Button1Click
+        end
+        object Button2: TButton
+          Left = 8
+          Top = 41
+          Width = 75
+          Height = 25
+          Caption = '- '#1084#1077#1089#1090#1086
+          TabOrder = 1
+          OnClick = Button2Click
+        end
+        object Button3: TButton
+          Left = 8
+          Top = 10
+          Width = 75
+          Height = 25
+          Caption = '+ '#1084#1077#1089#1090#1086
+          TabOrder = 2
+          OnClick = Button3Click
+        end
+        object Button4: TButton
+          Left = 8
+          Top = 103
+          Width = 75
+          Height = 25
+          Caption = '- '#1088#1077#1075'.'
+          TabOrder = 3
+          OnClick = Button4Click
+        end
+        object Button5: TButton
+          Left = 10
+          Top = 151
+          Width = 75
+          Height = 25
+          Caption = 'close'
+          TabOrder = 4
+          OnClick = Button5Click
+        end
+      end
     end
     object TabSheetCurrentChart: TTabSheet
       Caption = #1043#1088#1072#1092#1080#1082
@@ -315,6 +329,8 @@ object PanalibuiMainForm: TPanalibuiMainForm
       ParentColor = True
       ParentFont = False
       TabOrder = 1
+      ExplicitLeft = 36
+      ExplicitTop = -2
     end
   end
   object ImageList1: TImageList
@@ -327,7 +343,7 @@ object PanalibuiMainForm: TPanalibuiMainForm
     Left = 480
     Top = 178
     Bitmap = {
-      494C010109009C00F00232003200FFFFFF002110FFFFFFFFFFFFFFFF424D3600
+      494C010109009C00F40232003200FFFFFF002110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000C8000000960000000100200000000000C0D4
       0100000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -4223,7 +4239,7 @@ object PanalibuiMainForm: TPanalibuiMainForm
     Left = 472
     Top = 256
     Bitmap = {
-      494C010103001801800210001000FFFFFF002110FFFFFFFFFFFFFFFF424D3600
+      494C010103001801840210001000FFFFFF002110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -4372,7 +4388,7 @@ object PanalibuiMainForm: TPanalibuiMainForm
     Left = 544
     Top = 178
     Bitmap = {
-      494C01010300D401C40219001900FFFFFF002110FFFFFFFFFFFFFFFF424D3600
+      494C01010300D401C80219001900FFFFFF002110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000640000001900000001002000000000001027
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -4714,7 +4730,7 @@ object PanalibuiMainForm: TPanalibuiMainForm
     Left = 576
     Top = 266
     Bitmap = {
-      494C010102002403580314001400FFFFFF002110FFFFFFFFFFFFFFFF424D3600
+      494C0101020024035C0314001400FFFFFF002110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000500000001400000001002000000000000019
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
