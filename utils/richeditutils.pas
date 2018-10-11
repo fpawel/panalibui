@@ -6,7 +6,7 @@ uses vcl.comctrls, Graphics, RichEdit;
 
 type TLogLevel = ( llTrace,	llDebug, llInfo, llWarning, llError );
 
-procedure RichEdit_AddText(RichEdit1: TRichEdit; dt: TDateTime; level: integer;
+procedure RichEdit_AddText(RichEdit1: TRichEdit; dt: TDateTime; level: TLogLevel;
   text: string);
 
 procedure RichEdit_PopupMenu(re: TRichEdit);
@@ -27,7 +27,7 @@ begin
     r.Perform(EM_SETCHARFORMAT, SCF_SELECTION, lparam(@cf));
 end;
 
-procedure RichEdit_AddText(RichEdit1: TRichEdit; dt: TDateTime; level: integer;
+procedure RichEdit_AddText(RichEdit1: TRichEdit; dt: TDateTime; level: TLogLevel;
   text: string);
 
 begin
@@ -35,18 +35,18 @@ begin
     // RichEdit1.SelAttributes.Style := [fsBold];
     RichEdit1.SelText := TimeToStr(dt) + ' ';
 
-    if level >= LError then
+    if level >= llError then
     begin
         RichEdit1.SelAttributes.Color := clRed;
         setBackcolor(RichEdit1, cl3DLight);
     end
-    else if level = LWarning then
+    else if level = lLWarning then
         RichEdit1.SelAttributes.Color := clMaroon
-    else if level = LInfo then
+    else if level = lLInfo then
         RichEdit1.SelAttributes.Color := clNavy
-    else if level = LDebug then
+    else if level = lLDebug then
         RichEdit1.SelAttributes.Color := clGray
-    else if level = LTrace then
+    else if level = lLTrace then
         RichEdit1.SelAttributes.Color := cl3DLight;
 
     RichEdit1.SelText := text + #13;

@@ -15,7 +15,7 @@ const
 
 type
     THostAppCommand = (cmdError, cmdComport, cmdNetwork, cmdComportOk,
-      cmdReadVar, cmdWrite16);
+      cmdReadVar, cmdTextMessage);
 
     TPlace = class
         FAddr: integer;
@@ -109,7 +109,8 @@ implementation
 
 uses serverapp_msg, rest.json, runhostapp, json, vclutils,
     model_config, PropertiesFormUnit,
-    UnitFormReadVars, stringutils, model_network, ComponentBaloonHintU;
+    UnitFormReadVars, stringutils, model_network, ComponentBaloonHintU,
+  richeditutils;
 
 
 procedure TPanalibuiMainForm.Button1Click(Sender: TObject);
@@ -202,7 +203,7 @@ begin
                 response := TJson.JsonToObject<TWrite16Result>(StrFromCopydata(cd));
                 with TWrite16Result(response) do
                 begin
-
+                    RichEdit_AddText(RichEdit1, now, )
                 end;
                 Message.Result := 1;
             end;

@@ -16,7 +16,9 @@ uses
   UnitFormReadVars in 'UnitFormReadVars.pas' {FormReadVars},
   UnitFormPopup in 'UnitFormPopup.pas' {FormPopup},
   UnitServerApp in 'UnitServerApp.pas' {ServerApp: TDataModule},
-  serverapp_msg in 'messages\serverapp_msg.pas';
+  serverapp_msg in 'messages\serverapp_msg.pas',
+  ComponentBaloonHintU in 'utils\ComponentBaloonHintU.pas',
+  richeditutils in 'utils\richeditutils.pas';
 
 {$R *.res}
 
