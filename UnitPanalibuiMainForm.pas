@@ -9,8 +9,13 @@ uses
     Vcl.ToolWin, Vcl.ExtCtrls, Vcl.Grids, System.ImageList, Vcl.ImgList,
     UnitServerApp;
 
+const
+    { User-defined message }
+    UM_VALIDATEINPUT = WM_USER + 100;
+
 type
-    THostAppCommand = (cmdError, cmdComport, cmdNetwork, cmdComportOk, cmdReadVar);
+    THostAppCommand = (cmdError, cmdComport, cmdNetwork, cmdComportOk,
+      cmdReadVar, cmdWrite16);
 
     TPlace = class
         FAddr: integer;
@@ -64,24 +69,35 @@ type
         Button2: TButton;
         Button3: TButton;
         Button4: TButton;
-    Button5: TButton;
+        Button5: TButton;
+        Label1: TLabel;
+        Edit1: TEdit;
+        Label2: TLabel;
+        Edit2: TEdit;
+        Button6: TButton;
         procedure FormCreate(Sender: TObject);
         procedure PageControlMainDrawTab(Control: TCustomTabControl;
           TabIndex: integer; const Rect: TRect; Active: boolean);
         procedure PageControlMainChange(Sender: TObject);
         procedure FormShow(Sender: TObject);
-    procedure Button5Click(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-    procedure Button4Click(Sender: TObject);
+        procedure Button5Click(Sender: TObject);
+        procedure Button3Click(Sender: TObject);
+        procedure Button2Click(Sender: TObject);
+        procedure Button1Click(Sender: TObject);
+        procedure Button4Click(Sender: TObject);
+        procedure Button6Click(Sender: TObject);
     private
         { Private declarations }
-        procedure OnWMCopydata(var Message: TMessage);
+        FhWndTip: THandle;
+
+        procedure HandleCopydata(var Message: TMessage); message WM_COPYDATA;
+        procedure WMWindowPosChanged(var AMessage: TMessage);
+          message WM_WINDOWPOSCHANGED;
+        procedure WMActivateApp(var AMessage: TMessage); message WM_ACTIVATEAPP;
 
     public
         { Public declarations }
-        procedure WndProc(var Message: TMessage); override;
+
     end;
 
 var
@@ -93,7 +109,8 @@ implementation
 
 uses serverapp_msg, rest.json, runhostapp, json, vclutils,
     model_config, PropertiesFormUnit,
-    UnitFormReadVars, stringutils, model_network;
+    UnitFormReadVars, stringutils, model_network, ComponentBaloonHintU;
+
 
 procedure TPanalibuiMainForm.Button1Click(Sender: TObject);
 begin
@@ -121,34 +138,25 @@ begin
     Close;
 end;
 
+procedure TPanalibuiMainForm.Button6Click(Sender: TObject);
+begin
+    // ShowBalloonTip(Edit1.Handle, 3, clDefault, clRed, 'input bad', 'not an integer');
+    CloseWindow(FhWndTip);
+    FhWndTip := Edit1.ShowBalloonTip(TIconKind.Eror_Large, 'Baloon Title',
+      'Baloon text');
+end;
+
 procedure TPanalibuiMainForm.FormCreate(Sender: TObject);
 begin
-    //  SendMessage(hWndServer, WM_CLOSE, 0, 0);
-end;
-
-procedure TPanalibuiMainForm.WndProc(var Message: TMessage);
-var
-    cd: PCOPYDATASTRUCT;
-    cmd: THostAppCommand;
-
-begin
-    inherited;
-
-    case Message.Msg of
-        WM_COPYDATA:
-            OnWMCopydata(Message);
-
-    end;
+    // SendMessage(hWndServer, WM_CLOSE, 0, 0);
 
 end;
 
-procedure TPanalibuiMainForm.OnWMCopydata(var Message: TMessage);
+procedure TPanalibuiMainForm.HandleCopydata(var Message: TMessage);
 var
     cd: PCOPYDATASTRUCT;
     cmd: THostAppCommand;
-    cfg: TConfig;
-    network: TNetwork;
-    read_var:TReadVar;
+    response: TObject;
 begin
     cd := PCOPYDATASTRUCT(Message.LParam);
     cmd := THostAppCommand(Message.WParam);
@@ -167,27 +175,36 @@ begin
 
         cmdComport:
             begin
-                cfg := TJson.JsonToObject<TConfig>(StrFromCopydata(cd));
-                PropertiesForm.SetConfig(cfg);
-                //cfg.Free;
+                response := TJson.JsonToObject<TConfig>(StrFromCopydata(cd));
+                PropertiesForm.SetConfig(TConfig(response));
+                // cfg.Free;
                 Message.Result := 1;
             end;
 
         cmdNetwork:
             begin
-                network := TJson.JsonToObject<Tnetwork>(StrFromCopydata(cd));
-                FormReadVars.Init(network);
-                //network.Free;
+                response := TJson.JsonToObject<TNetwork>(StrFromCopydata(cd));
+                FormReadVars.Init(TNetwork(response));
+                // network.Free;
                 Message.Result := 1;
             end;
 
         cmdReadVar:
             begin
-                read_var := TJson.JsonToObject<TReadVar>(StrFromCopydata(cd));
-                FormReadVars.HandleReadVar(read_var);
-                read_var.Free;
+                response := TJson.JsonToObject<TReadVar>(StrFromCopydata(cd));
+                FormReadVars.HandleReadVar(TReadVar(response));
+                TReadVar(response).Free;
                 Message.Result := 1;
 
+            end;
+        cmdWrite16:
+            begin
+                response := TJson.JsonToObject<TWrite16Result>(StrFromCopydata(cd));
+                with TWrite16Result(response) do
+                begin
+
+                end;
+                Message.Result := 1;
             end;
     end;
 end;
@@ -197,21 +214,21 @@ begin
     OnShow := nil;
     with PropertiesForm do
     begin
-        Font.Assign(self.Font);
+        Font.Assign(Self.Font);
         BorderStyle := bsNone;
         Align := alClient;
         Parent := TabSheetSettings;
 
         OnValueChanged := procedure(p: TChangedPropertyValue)
             begin
-                ServerApp.MustSendJSON(self.Handle, dmsgSetsProp, p);
+                ServerApp.MustSendJSON(Self.Handle, dmsgSetsProp, p);
             end;
         Show;
     end;
 
     with FormReadVars do
     begin
-        Font.Assign(self.Font);
+        Font.Assign(Self.Font);
         BorderStyle := bsNone;
         Align := alClient;
         Parent := TabSheetVars;
@@ -230,6 +247,18 @@ procedure TPanalibuiMainForm.PageControlMainDrawTab(Control: TCustomTabControl;
   TabIndex: integer; const Rect: TRect; Active: boolean);
 begin
     PageControl_DrawVerticalTab(Control, TabIndex, Rect, Active);
+end;
+
+procedure TPanalibuiMainForm.WMActivateApp(var AMessage: TMessage);
+begin
+    CloseWindow(FhWndTip);
+    inherited;
+end;
+
+procedure TPanalibuiMainForm.WMWindowPosChanged(var AMessage: TMessage);
+begin
+    CloseWindow(FhWndTip);
+    inherited;
 end;
 
 end.

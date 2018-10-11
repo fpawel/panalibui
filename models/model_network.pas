@@ -25,6 +25,12 @@ type TReadVar = class
     FError: string;
 end;
 
+type TWrite16Result = class
+    FPlace : integer;
+    FAddr : integer;
+    FError: string;
+end;
+
 implementation
 
 end.

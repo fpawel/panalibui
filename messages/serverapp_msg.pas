@@ -4,9 +4,9 @@ interface
 
 type
     TServerAppUserMsg = (msgPeer, msgSetVarChecked, msgSetPlaceChecked,
-      msgAddDelVar, msgAddDelPlace, msgSetAddr, msgSetVar);
+      msgAddDelVar, msgAddDelPlace, msgSetAddr, msgSetVar, msgToggle);
 
-    TServerAppDataMsg = (dmsgSetsProp);
+    TServerAppDataMsg = (dmsgSetsProp, dmsgWrite16);
 
 implementation
 

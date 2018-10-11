@@ -104,13 +104,27 @@ var
     pt: TPoint;
     place, varInd: Integer;
     k: string;
+    ACol, ARow: Integer;
+
 begin
-    varInd := row2var(StringGrid1.row);
-    place := col2place(StringGrid1.col);
+
     with StringGrid1 do
     begin
-        k := pvkk(col, row);
-        r := CellRect(col, row);
+        GetCursorPos(pt);
+        pt := ScreenToClient(pt);
+        MouseToCell(pt.X, pt.Y, ACol, ARow);
+
+        if (ACol=0) AND (ARow = 0) then
+        begin
+            ServerApp.SendMsg(msgToggle, 0,0);
+            exit;
+        end;
+
+
+        varInd := row2var(ACol);
+        place := col2place(ARow);
+        k := pvkk(ACol, ARow);
+        r := CellRect(ACol, ARow);
         pt := ClientToScreen(r.BottomRight);
     end;
 
@@ -238,14 +252,17 @@ begin
     if (GetAsyncKeyState(VK_LBUTTON) >= 0) then
         exit;
     StringGrid1.MouseToCell(X, Y, ACol, ARow);
+    if ((ACol = 0) and (ARow = 0)) OR ((ACol <> 0) AND (ARow <> 0)) then
+        exit;
 
     Rect := StringGrid1.CellRect(ACol, ARow);
 
-    if ((ACol = 0) or (ARow = 0)) and (X > (Rect.Right + Rect.Left) div 2) then
-    begin
+    if X > (Rect.Right + Rect.Left) div 2 then
         with StringGrid1 do
         begin
             fixedrows := 0;
+            if True then
+
             col := ACol;
             row := ARow;
             Options := Options + [goEditing];
@@ -255,23 +272,18 @@ begin
                 SelStart := 0;
                 SelLength := Length(Cells[ACol, ARow]);
             end;
-
+            exit;
         end;
 
+    if ACol = 0 then
+    begin
+        ToggleRowChecked(ARow);
+        StringGrid_RedrawRow(StringGrid1, ARow);
     end
     else
     begin
-        if (ACol = 0) AND (ARow > 0) then
-        begin
-            ToggleRowChecked(ARow);
-            StringGrid_RedrawRow(StringGrid1, ARow);
-        end;
-
-        if (ARow = 0) AND (ACol > 0) then
-        begin
-            ToggleColChecked(ACol);
-            StringGrid_RedrawCol(StringGrid1, ACol);
-        end;
+        ToggleColChecked(ACol);
+        StringGrid_RedrawCol(StringGrid1, ACol);
     end;
 end;
 
@@ -377,6 +389,7 @@ begin
             Cells[ACol, 0] := inttostr(FNetwork.FPlaces[place].FAddr);
         end;
     end;
+    StringGrid_Redraw(StringGrid1);
 end;
 
 procedure TFormReadVars.reset;

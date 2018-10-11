@@ -12,7 +12,6 @@ uses
   PropertyValueEditors in 'settings\PropertyValueEditors.pas',
   listports in 'utils\listports.pas',
   PropertiesFormUnit in 'settings\PropertiesFormUnit.pas' {PropertiesForm},
-  model_initdata in 'models\model_initdata.pas',
   model_network in 'models\model_network.pas',
   UnitFormReadVars in 'UnitFormReadVars.pas' {FormReadVars},
   UnitFormPopup in 'UnitFormPopup.pas' {FormPopup},

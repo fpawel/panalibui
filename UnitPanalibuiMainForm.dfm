@@ -54,8 +54,24 @@ object PanalibuiMainForm: TPanalibuiMainForm
         Align = alRight
         BevelOuter = bvNone
         TabOrder = 0
+        ExplicitLeft = 830
+        ExplicitTop = 3
+        object Label1: TLabel
+          Left = 1
+          Top = 144
+          Width = 62
+          Height = 18
+          Caption = #1082#1086#1084#1072#1085#1076#1072':'
+        end
+        object Label2: TLabel
+          Left = 1
+          Top = 200
+          Width = 69
+          Height = 18
+          Caption = #1072#1088#1075#1091#1084#1077#1085#1090':'
+        end
         object Button1: TButton
-          Left = 8
+          Left = 1
           Top = 72
           Width = 75
           Height = 25
@@ -64,7 +80,7 @@ object PanalibuiMainForm: TPanalibuiMainForm
           OnClick = Button1Click
         end
         object Button2: TButton
-          Left = 8
+          Left = 1
           Top = 41
           Width = 75
           Height = 25
@@ -73,7 +89,7 @@ object PanalibuiMainForm: TPanalibuiMainForm
           OnClick = Button2Click
         end
         object Button3: TButton
-          Left = 8
+          Left = 1
           Top = 10
           Width = 75
           Height = 25
@@ -82,7 +98,7 @@ object PanalibuiMainForm: TPanalibuiMainForm
           OnClick = Button3Click
         end
         object Button4: TButton
-          Left = 8
+          Left = 1
           Top = 103
           Width = 75
           Height = 25
@@ -91,13 +107,39 @@ object PanalibuiMainForm: TPanalibuiMainForm
           OnClick = Button4Click
         end
         object Button5: TButton
-          Left = 10
-          Top = 151
+          Left = 1
+          Top = 406
           Width = 75
           Height = 25
           Caption = 'close'
           TabOrder = 4
           OnClick = Button5Click
+        end
+        object Edit1: TEdit
+          Left = 1
+          Top = 168
+          Width = 77
+          Height = 26
+          TabOrder = 5
+          Text = '0'
+        end
+        object Edit2: TEdit
+          Left = 1
+          Top = 224
+          Width = 77
+          Height = 26
+          NumbersOnly = True
+          TabOrder = 6
+          Text = '0'
+        end
+        object Button6: TButton
+          Left = 1
+          Top = 256
+          Width = 75
+          Height = 25
+          Caption = #1042#1099#1087'.'
+          TabOrder = 7
+          OnClick = Button6Click
         end
       end
     end
@@ -329,8 +371,6 @@ object PanalibuiMainForm: TPanalibuiMainForm
       ParentColor = True
       ParentFont = False
       TabOrder = 1
-      ExplicitLeft = 36
-      ExplicitTop = -2
     end
   end
   object ImageList1: TImageList
@@ -343,7 +383,7 @@ object PanalibuiMainForm: TPanalibuiMainForm
     Left = 480
     Top = 178
     Bitmap = {
-      494C010109009C00F40232003200FFFFFF002110FFFFFFFFFFFFFFFF424D3600
+      494C010109009C00F80232003200FFFFFF002110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000C8000000960000000100200000000000C0D4
       0100000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -4239,7 +4279,7 @@ object PanalibuiMainForm: TPanalibuiMainForm
     Left = 472
     Top = 256
     Bitmap = {
-      494C010103001801840210001000FFFFFF002110FFFFFFFFFFFFFFFF424D3600
+      494C010103001801880210001000FFFFFF002110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -4388,7 +4428,7 @@ object PanalibuiMainForm: TPanalibuiMainForm
     Left = 544
     Top = 178
     Bitmap = {
-      494C01010300D401C80219001900FFFFFF002110FFFFFFFFFFFFFFFF424D3600
+      494C01010300D401CC0219001900FFFFFF002110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000640000001900000001002000000000001027
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -4730,7 +4770,7 @@ object PanalibuiMainForm: TPanalibuiMainForm
     Left = 576
     Top = 266
     Bitmap = {
-      494C0101020024035C0314001400FFFFFF002110FFFFFFFFFFFFFFFF424D3600
+      494C010102002403600314001400FFFFFF002110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000500000001400000001002000000000000019
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

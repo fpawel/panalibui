@@ -16,9 +16,19 @@ procedure PageControl_DrawVerticalTab(Control: TCustomTabControl;
 
 procedure ConvertImagesToHighColor(ImageList: TImageList);
 
+// hWnd - control window handle to attach the baloon to.
+// Icon - icon index; 0 = none, 1 = info, 2 = warning, 3 = error.
+// BackCL - background color or clDefault to use system setting.
+// TextCL - text and border colors or clDefault to use system setting.
+// Title - tooltip title (bold first line).
+// Text - tooltip text.
+
+procedure ShowBalloonTip(hWnd: THandle; Icon: integer; BackCL, TextCL: TColor;
+  Title: pchar; Text: PWideChar);
+
 implementation
 
-uses Winapi.Windows, Winapi.commctrl;
+uses Winapi.Windows, Winapi.commctrl, Winapi.messages;
 
 procedure ModifyControl(const AControl: TControl; const ARef: TControlProc);
 var
@@ -122,6 +132,72 @@ begin
           Count, AllocBy);
     ImageList.Assign(IL);
     IL.Free;
+end;
+
+
+// hWnd - control window handle to attach the baloon to.
+// Icon - icon index; 0 = none, 1 = info, 2 = warning, 3 = error.
+// BackCL - background color or clDefault to use system setting.
+// TextCL - text and border colors or clDefault to use system setting.
+// Title - tooltip title (bold first line).
+// Text - tooltip text.
+
+procedure ShowBalloonTip(hWnd: THandle; Icon: integer; BackCL, TextCL: TColor;
+  Title: pchar; Text: PWideChar);
+const
+    TOOLTIPS_CLASS = 'tooltips_class32';
+    TTS_ALWAYSTIP = $01;
+    TTS_NOPREFIX = $02;
+    TTS_BALLOON = $40;
+    TTF_SUBCLASS = $0010;
+    TTF_TRANSPARENT = $0100;
+    TTF_CENTERTIP = $0002;
+    TTM_ADDTOOL = $0400 + 50;
+    TTM_SETTITLE = (WM_USER + 32);
+    ICC_WIN95_CLASSES = $000000FF;
+type
+    TOOLINFO = packed record
+        cbSize: integer;
+        uFlags: integer;
+        hWnd: THandle;
+        uId: integer;
+        Rect: TRect;
+        hinst: THandle;
+        lpszText: PWideChar;
+        lParam: integer;
+    end;
+
+var
+    hWndTip: THandle;
+    ti: TOOLINFO;
+begin
+    hWndTip := CreateWindow(TOOLTIPS_CLASS, nil, WS_POPUP or TTS_CLOSE or
+      TTS_NOPREFIX or TTS_BALLOON or TTS_ALWAYSTIP, 0, 0, 0, 0, hWnd, 0,
+      HInstance, nil);
+
+    if hWndTip <> 0 then
+    begin
+        SetWindowPos(hWndTip, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE or
+          SWP_NOMOVE or SWP_NOSIZE);
+
+        ti.cbSize := SizeOf(ti);
+        ti.uFlags := TTF_CENTERTIP or TTF_TRANSPARENT or TTF_SUBCLASS;
+        ti.hWnd := hWnd;
+        ti.lpszText := Text;
+
+        GetClientRect(hWnd, ti.Rect);
+        if BackCL <> clDefault then
+            SendMessage(hWndTip, TTM_SETTIPBKCOLOR, BackCL, 0);
+
+        if TextCL <> clDefault then
+            SendMessage(hWndTip, TTM_SETTIPTEXTCOLOR, TextCL, 0);
+
+        SendMessage(hWndTip, TTM_ADDTOOL, 1, integer(@ti));
+        SendMessage(hWndTip, TTM_SETTITLE, Icon mod 4, integer(Title));
+
+        // TTM_TRACKACTIVATE => Makes sure you have to close the hint you self
+        SendMessage(hWndTip, TTM_TRACKACTIVATE, integer(true), integer(@ti));
+    end;
 end;
 
 end.
