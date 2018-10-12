@@ -25,10 +25,9 @@ type TReadVar = class
     FError: string;
 end;
 
-type TWrite16Result = class
-    FPlace : integer;
-    FAddr : integer;
-    FError: string;
+type TPanalibTextMessage = class
+    FText: string;
+    FOk: boolean;
 end;
 
 implementation

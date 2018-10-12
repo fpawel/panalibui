@@ -242,7 +242,9 @@ begin
                     Items.Add(FConfigData.Prop.FList[i]);
             OnKeyDown := EditKeyDown;
             OnKeyUp := EditKeyUp;
-            style := csDropDownList;
+            style := csDropDown;
+
+
             ItemHeight := 22;
             ItemIndex := Items.IndexOf(FConfigData.Prop.FValue);
         end;

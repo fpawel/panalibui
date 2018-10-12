@@ -6,7 +6,7 @@ type
     TServerAppUserMsg = (msgPeer, msgSetVarChecked, msgSetPlaceChecked,
       msgAddDelVar, msgAddDelPlace, msgSetAddr, msgSetVar, msgToggle);
 
-    TServerAppDataMsg = (dmsgSetsProp, dmsgWrite16);
+    TServerAppDataMsg = (dmsgSetsProp, dmsgPerformTextCommand);
 
 implementation
 

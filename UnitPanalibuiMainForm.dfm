@@ -2,8 +2,8 @@ object PanalibuiMainForm: TPanalibuiMainForm
   Left = 0
   Top = 0
   Caption = 'PanalibuiMainForm'
-  ClientHeight = 716
-  ClientWidth = 1037
+  ClientHeight = 525
+  ClientWidth = 1020
   Color = clWindow
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -15,25 +15,12 @@ object PanalibuiMainForm: TPanalibuiMainForm
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 18
-  object SplitterConsoleHoriz: TSplitter
-    Left = 0
-    Top = 576
-    Width = 1037
-    Height = 5
-    Cursor = crVSplit
-    Align = alBottom
-    Color = clBtnFace
-    ParentColor = False
-    ExplicitLeft = -465
-    ExplicitTop = 295
-    ExplicitWidth = 1100
-  end
   object PageControlMain: TPageControl
     Left = 5
-    Top = 32
-    Width = 1027
-    Height = 544
-    ActivePage = TabSheetVars
+    Top = 37
+    Width = 1010
+    Height = 457
+    ActivePage = TabSheetConsole
     Align = alClient
     MultiLine = True
     OwnerDraw = True
@@ -43,19 +30,24 @@ object PanalibuiMainForm: TPanalibuiMainForm
     TabWidth = 50
     OnChange = PageControlMainChange
     OnDrawTab = PageControlMainDrawTab
+    ExplicitTop = 32
+    ExplicitWidth = 1027
+    ExplicitHeight = 544
     object TabSheetVars: TTabSheet
       Caption = #1054#1087#1088#1086#1089
       ImageIndex = 2
+      ExplicitWidth = 919
+      ExplicitHeight = 536
       object Panel1: TPanel
-        Left = 832
+        Left = 815
         Top = 0
         Width = 87
-        Height = 536
+        Height = 449
         Align = alRight
         BevelOuter = bvNone
         TabOrder = 0
-        ExplicitLeft = 830
-        ExplicitTop = 3
+        ExplicitLeft = 832
+        ExplicitHeight = 536
         object Label1: TLabel
           Left = 1
           Top = 144
@@ -146,69 +138,19 @@ object PanalibuiMainForm: TPanalibuiMainForm
     object TabSheetCurrentChart: TTabSheet
       Caption = #1043#1088#1072#1092#1080#1082
       ImageIndex = 5
+      ExplicitWidth = 919
+      ExplicitHeight = 536
     end
-    object TabSheetSettings: TTabSheet
-      Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080
+    object TabSheetConsole: TTabSheet
+      Caption = #1050#1086#1085#1089#1086#1083#1100
       ImageIndex = 4
-    end
-    object TabSheetArchive: TTabSheet
-      Caption = #1040#1088#1093#1080#1074
-      ImageIndex = 1
-    end
-  end
-  object Panel14: TPanel
-    Left = 0
-    Top = 32
-    Width = 5
-    Height = 544
-    Align = alLeft
-    BevelOuter = bvNone
-    TabOrder = 1
-  end
-  object Panel4: TPanel
-    Left = 1032
-    Top = 32
-    Width = 5
-    Height = 544
-    Align = alRight
-    BevelOuter = bvNone
-    TabOrder = 2
-  end
-  object Panel8: TPanel
-    Left = 0
-    Top = 581
-    Width = 1037
-    Height = 5
-    Align = alBottom
-    BevelOuter = bvNone
-    TabOrder = 3
-  end
-  object PanelConsolePlaceholderBottom: TPanel
-    Left = 0
-    Top = 586
-    Width = 1037
-    Height = 130
-    Align = alBottom
-    Alignment = taLeftJustify
-    BevelOuter = bvNone
-    ParentColor = True
-    TabOrder = 4
-    object PanelConsole: TPanel
-      Left = 0
-      Top = 0
-      Width = 1037
-      Height = 130
-      Align = alClient
-      Alignment = taLeftJustify
-      BevelOuter = bvNone
-      Constraints.MinHeight = 30
-      ParentColor = True
-      TabOrder = 0
+      ExplicitWidth = 919
+      ExplicitHeight = 536
       object RichEdit1: TRichEdit
         Left = 0
-        Top = 32
-        Width = 1037
-        Height = 98
+        Top = 0
+        Width = 902
+        Height = 449
         Align = alClient
         BorderStyle = bsNone
         Font.Charset = RUSSIAN_CHARSET
@@ -217,96 +159,66 @@ object PanalibuiMainForm: TPanalibuiMainForm
         Font.Name = 'Tahoma'
         Font.Style = []
         ParentFont = False
-        ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 0
         Zoom = 100
-      end
-      object PanelConsoleHeader: TPanel
-        Left = 0
-        Top = 0
-        Width = 1037
-        Height = 32
-        Align = alTop
-        Alignment = taLeftJustify
-        BevelOuter = bvNone
-        Color = clGradientInactiveCaption
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clGray
-        Font.Height = -16
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentBackground = False
-        ParentFont = False
-        TabOrder = 1
-        object Panel6: TPanel
-          Left = 0
-          Top = 0
-          Width = 129
-          Height = 32
-          Align = alLeft
-          Alignment = taLeftJustify
-          BevelOuter = bvNone
-          Caption = '   '#1057#1086#1086#1073#1097#1077#1085#1080#1103':'
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clGray
-          Font.Height = -15
-          Font.Name = 'Tahoma'
-          Font.Style = [fsBold]
-          ParentColor = True
-          ParentFont = False
-          TabOrder = 2
-        end
-        object PanelLastMessage: TPanel
-          Left = 129
-          Top = 0
-          Width = 875
-          Height = 32
-          Align = alClient
-          Alignment = taLeftJustify
-          BevelOuter = bvNone
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clGray
-          Font.Height = -15
-          Font.Name = 'Tahoma'
-          Font.Style = []
-          ParentColor = True
-          ParentFont = False
-          TabOrder = 1
-        end
-        object ToolBar4: TToolBar
-          Left = 1004
-          Top = 0
-          Width = 33
-          Align = alRight
-          ButtonHeight = 31
-          ButtonWidth = 32
-          Caption = 'ToolBar1'
-          EdgeInner = esNone
-          EdgeOuter = esNone
-          Images = ImageList3
-          TabOrder = 0
-          object ToolButtonMoveConsoleDown: TToolButton
-            Left = 0
-            Top = 0
-            Caption = 'ToolButtonMoveConsoleDown'
-            ImageIndex = 1
-            Visible = False
-          end
-          object ToolButtonConsoleHide: TToolButton
-            Left = 32
-            Top = 0
-            Caption = 'ToolButtonConsoleHide'
-            ImageIndex = 0
-          end
-        end
+        OnKeyDown = RichEdit1KeyDown
+        ExplicitWidth = 919
+        ExplicitHeight = 536
       end
     end
+    object TabSheetSettings: TTabSheet
+      Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080
+      ImageIndex = 4
+      ExplicitWidth = 919
+      ExplicitHeight = 536
+    end
+    object TabSheetArchive: TTabSheet
+      Caption = #1040#1088#1093#1080#1074
+      ImageIndex = 1
+      ExplicitWidth = 919
+      ExplicitHeight = 536
+    end
+  end
+  object Panel14: TPanel
+    Left = 0
+    Top = 37
+    Width = 5
+    Height = 457
+    Align = alLeft
+    BevelOuter = bvNone
+    TabOrder = 1
+    ExplicitLeft = 123
+    ExplicitTop = 66
+    ExplicitHeight = 451
+  end
+  object Panel4: TPanel
+    Left = 1015
+    Top = 37
+    Width = 5
+    Height = 457
+    Align = alRight
+    BevelOuter = bvNone
+    TabOrder = 2
+    ExplicitLeft = 1032
+    ExplicitTop = 32
+    ExplicitHeight = 544
+  end
+  object Panel8: TPanel
+    Left = 0
+    Top = 494
+    Width = 1020
+    Height = 5
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 3
+    ExplicitTop = 582
+    ExplicitWidth = 1037
   end
   object PanelTopBar: TPanel
     Left = 0
-    Top = 0
-    Width = 1037
+    Top = 5
+    Width = 1020
     Height = 32
     Align = alTop
     Alignment = taLeftJustify
@@ -320,7 +232,9 @@ object PanalibuiMainForm: TPanalibuiMainForm
     ParentBackground = False
     ParentColor = True
     ParentFont = False
-    TabOrder = 5
+    TabOrder = 4
+    ExplicitTop = 0
+    ExplicitWidth = 1037
     object ToolBarParty: TToolBar
       Left = 0
       Top = 0
@@ -353,10 +267,10 @@ object PanalibuiMainForm: TPanalibuiMainForm
         Visible = False
       end
     end
-    object PanelPartyTopMessage: TPanel
+    object PanelTopMessage: TPanel
       Left = 30
       Top = 0
-      Width = 1007
+      Width = 990
       Height = 32
       Align = alClient
       Alignment = taLeftJustify
@@ -371,7 +285,36 @@ object PanalibuiMainForm: TPanalibuiMainForm
       ParentColor = True
       ParentFont = False
       TabOrder = 1
+      ExplicitWidth = 1007
     end
+  end
+  object PanelComportStatus: TPanel
+    Left = 0
+    Top = 499
+    Width = 1020
+    Height = 26
+    Align = alBottom
+    Alignment = taLeftJustify
+    BevelOuter = bvNone
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clGray
+    Font.Height = -16
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentBackground = False
+    ParentColor = True
+    ParentFont = False
+    TabOrder = 5
+    ExplicitTop = 500
+  end
+  object Panel2: TPanel
+    Left = 0
+    Top = 0
+    Width = 1020
+    Height = 5
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 6
   end
   object ImageList1: TImageList
     ColorDepth = cd32Bit
@@ -383,7 +326,7 @@ object PanalibuiMainForm: TPanalibuiMainForm
     Left = 480
     Top = 178
     Bitmap = {
-      494C010109009C00F80232003200FFFFFF002110FFFFFFFFFFFFFFFF424D3600
+      494C010109009C00FC0232003200FFFFFF002110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000C8000000960000000100200000000000C0D4
       0100000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -4279,7 +4222,7 @@ object PanalibuiMainForm: TPanalibuiMainForm
     Left = 472
     Top = 256
     Bitmap = {
-      494C010103001801880210001000FFFFFF002110FFFFFFFFFFFFFFFF424D3600
+      494C0101030018018C0210001000FFFFFF002110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -4428,7 +4371,7 @@ object PanalibuiMainForm: TPanalibuiMainForm
     Left = 544
     Top = 178
     Bitmap = {
-      494C01010300D401CC0219001900FFFFFF002110FFFFFFFFFFFFFFFF424D3600
+      494C01010300D401D00219001900FFFFFF002110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000640000001900000001002000000000001027
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -4770,7 +4713,7 @@ object PanalibuiMainForm: TPanalibuiMainForm
     Left = 576
     Top = 266
     Bitmap = {
-      494C010102002403600314001400FFFFFF002110FFFFFFFFFFFFFFFF424D3600
+      494C010102002403640314001400FFFFFF002110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000500000001400000001002000000000000019
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

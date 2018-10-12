@@ -4,17 +4,30 @@ interface
 
 uses vcl.comctrls, Graphics, RichEdit;
 
-type TLogLevel = ( llTrace,	llDebug, llInfo, llWarning, llError );
+type
+    TLogLevel = (llTrace, llDebug, llInfo, llWarning, llError);
 
-procedure RichEdit_AddText(RichEdit1: TRichEdit; dt: TDateTime; level: TLogLevel;
-  text: string);
+procedure RichEdit_AddText(RichEdit1: TRichEdit; dt: TDateTime;
+  font_color, back_color: TColor; has_back_color: boolean; text: string);
+
+function RichEdit_CurrentlineNumber(re: TRichEdit): Integer;
 
 procedure RichEdit_PopupMenu(re: TRichEdit);
 
+procedure RichEdit_EnsureNewSingleLine(re: TRichEdit);
+
 implementation
 
-uses System.SysUtils,  Winapi.Windows, Winapi.Messages, Clipbrd,
+uses System.SysUtils, Winapi.Windows, Winapi.Messages, Clipbrd,
     vcl.forms, vcl.controls;
+
+function RichEdit_CurrentlineNumber(re: TRichEdit): Integer;
+var
+    Pos: TPoint;
+begin
+    Pos.Y := re.Perform(EM_LINEFROMCHAR, re.SelStart, 0);
+    Result := Pos.Y + 1;
+end;
 
 procedure setBackcolor(r: TRichEdit; c: TColor);
 var
@@ -27,29 +40,31 @@ begin
     r.Perform(EM_SETCHARFORMAT, SCF_SELECTION, lparam(@cf));
 end;
 
-procedure RichEdit_AddText(RichEdit1: TRichEdit; dt: TDateTime; level: TLogLevel;
-  text: string);
+procedure RichEdit_AddText(RichEdit1: TRichEdit; dt: TDateTime;
+  font_color, back_color: TColor; has_back_color: boolean; text: string);
 
 begin
-    RichEdit1.SelAttributes.Color := clGreen;
+    //RichEdit1.SelAttributes.Color := clGreen;
     // RichEdit1.SelAttributes.Style := [fsBold];
-    RichEdit1.SelText := TimeToStr(dt) + ' ';
+    //RichEdit1.SelText := TimeToStr(dt) + ' ';
+    RichEdit1.SelAttributes.Color := font_color;
 
-    if level >= llError then
-    begin
-        RichEdit1.SelAttributes.Color := clRed;
-        setBackcolor(RichEdit1, cl3DLight);
-    end
-    else if level = lLWarning then
-        RichEdit1.SelAttributes.Color := clMaroon
-    else if level = lLInfo then
-        RichEdit1.SelAttributes.Color := clNavy
-    else if level = lLDebug then
-        RichEdit1.SelAttributes.Color := clGray
-    else if level = lLTrace then
-        RichEdit1.SelAttributes.Color := cl3DLight;
+    if has_back_color then
+        setBackcolor(RichEdit1, back_color);
 
     RichEdit1.SelText := text + #13;
+end;
+
+procedure RichEdit_EnsureNewSingleLine(re: TRichEdit);
+begin
+    with re do
+    begin
+        while trim(Lines[Lines.Count-1]) = '' do
+            Lines.Delete(Lines.Count-1);
+        Text := trim(text);
+        Lines.Add('');
+    end;
+
 end;
 
 procedure RichEdit_PopupMenu(re: TRichEdit);
@@ -62,14 +77,14 @@ const
     IDM_SELALL = EM_SETSEL;
     IDM_RTL = $8000; // WM_APP ?
 
-    Enables: array [Boolean] of DWORD = (MF_DISABLED or MF_GRAYED, MF_ENABLED);
-    Checks: array [Boolean] of DWORD = (MF_UNCHECKED, MF_CHECKED);
+    Enables: array [boolean] of DWORD = (MF_DISABLED or MF_GRAYED, MF_ENABLED);
+    Checks: array [boolean] of DWORD = (MF_UNCHECKED, MF_CHECKED);
 var
     hUser32: HMODULE;
     hmnu, hmenuTrackPopup: HMENU;
     Cmd: DWORD;
     Flags: Cardinal;
-    HasSelText: Boolean;
+    HasSelText: boolean;
     FormHandle: HWND;
     // IsRTL: Boolean;
 begin

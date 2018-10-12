@@ -14,7 +14,7 @@ const
     UM_VALIDATEINPUT = WM_USER + 100;
 
 type
-    THostAppCommand = (cmdError, cmdComport, cmdNetwork, cmdComportOk,
+    THostAppCommand = (cmdError, cmdUserConfig, cmdNetwork, cmdComportOk,
       cmdReadVar, cmdTextMessage);
 
     TPlace = class
@@ -40,20 +40,13 @@ type
         Panel14: TPanel;
         Panel4: TPanel;
         Panel8: TPanel;
-        PanelConsolePlaceholderBottom: TPanel;
-        PanelConsole: TPanel;
         RichEdit1: TRichEdit;
-        PanelConsoleHeader: TPanel;
-        Panel6: TPanel;
-        PanelLastMessage: TPanel;
-        ToolBar4: TToolBar;
-        ToolButtonMoveConsoleDown: TToolButton;
-        ToolButtonConsoleHide: TToolButton;
+        PanelComportStatus: TPanel;
         PanelTopBar: TPanel;
         ToolBarParty: TToolBar;
         ToolButtonParty: TToolButton;
         ToolButtonStop: TToolButton;
-        PanelPartyTopMessage: TPanel;
+        PanelTopMessage: TPanel;
         PopupMenu1: TPopupMenu;
         N4: TMenuItem;
         N5: TMenuItem;
@@ -63,7 +56,6 @@ type
         N8: TMenuItem;
         N6: TMenuItem;
         N7: TMenuItem;
-        SplitterConsoleHoriz: TSplitter;
         Panel1: TPanel;
         Button1: TButton;
         Button2: TButton;
@@ -75,6 +67,8 @@ type
         Label2: TLabel;
         Edit2: TEdit;
         Button6: TButton;
+        TabSheetConsole: TTabSheet;
+        Panel2: TPanel;
         procedure FormCreate(Sender: TObject);
         procedure PageControlMainDrawTab(Control: TCustomTabControl;
           TabIndex: integer; const Rect: TRect; Active: boolean);
@@ -86,6 +80,8 @@ type
         procedure Button1Click(Sender: TObject);
         procedure Button4Click(Sender: TObject);
         procedure Button6Click(Sender: TObject);
+        procedure RichEdit1KeyDown(Sender: TObject; var Key: Word;
+          Shift: TShiftState);
     private
         { Private declarations }
         FhWndTip: THandle;
@@ -110,8 +106,7 @@ implementation
 uses serverapp_msg, rest.json, runhostapp, json, vclutils,
     model_config, PropertiesFormUnit,
     UnitFormReadVars, stringutils, model_network, ComponentBaloonHintU,
-  richeditutils;
-
+    richeditutils;
 
 procedure TPanalibuiMainForm.Button1Click(Sender: TObject);
 begin
@@ -141,10 +136,11 @@ end;
 
 procedure TPanalibuiMainForm.Button6Click(Sender: TObject);
 begin
+
     // ShowBalloonTip(Edit1.Handle, 3, clDefault, clRed, 'input bad', 'not an integer');
-    CloseWindow(FhWndTip);
-    FhWndTip := Edit1.ShowBalloonTip(TIconKind.Eror_Large, 'Baloon Title',
-      'Baloon text');
+    // CloseWindow(FhWndTip);
+    // FhWndTip := Edit1.ShowBalloonTip(TIconKind.Eror_Large, 'Baloon Title',
+    // 'Baloon text');
 end;
 
 procedure TPanalibuiMainForm.FormCreate(Sender: TObject);
@@ -163,18 +159,20 @@ begin
     cmd := THostAppCommand(Message.WParam);
     case cmd of
         cmdError:
+            with PanelComportStatus do
             begin
-                PanelPartyTopMessage.Font.Color := clRed;
-                PanelPartyTopMessage.Caption := StrFromCopydata(cd);
+                Font.Color := clRed;
+                Caption := '   ' + StrFromCopydata(cd);
             end;
 
         cmdComportOk:
+            with PanelComportStatus do
             begin
-                PanelPartyTopMessage.Font.Color := clNavy;
-                PanelPartyTopMessage.Caption := StrFromCopydata(cd);
+                Font.Color := clNavy;
+                Caption := '   ' + StrFromCopydata(cd);
             end;
 
-        cmdComport:
+        cmdUserConfig:
             begin
                 response := TJson.JsonToObject<TConfig>(StrFromCopydata(cd));
                 PropertiesForm.SetConfig(TConfig(response));
@@ -198,13 +196,28 @@ begin
                 Message.Result := 1;
 
             end;
-        cmdWrite16:
+        cmdTextMessage:
             begin
-                response := TJson.JsonToObject<TWrite16Result>(StrFromCopydata(cd));
-                with TWrite16Result(response) do
+                response := TJson.JsonToObject<TPanalibTextMessage>
+                  (StrFromCopydata(cd));
+                RichEdit_EnsureNewSingleLine(RichEdit1);
+                SendMessage(RichEdit1.Handle, EM_SCROLL, SB_LINEDOWN, 0);
+                RichEdit1.SelStart := Length(RichEdit1.Text);
+
+                with TPanalibTextMessage(response) do
                 begin
-                    RichEdit_AddText(RichEdit1, now, )
+
+                    if FOk then
+                        RichEdit_AddText(RichEdit1, now, clBlack, 0,
+                          false, FText)
+                    else
+                        RichEdit_AddText(RichEdit1, now, clRed, cl3dLight,
+                          true, FText);
+                    Free;
                 end;
+
+                SendMessage(RichEdit1.Handle, EM_SCROLL, SB_LINEDOWN, 0);
+
                 Message.Result := 1;
             end;
     end;
@@ -248,6 +261,33 @@ procedure TPanalibuiMainForm.PageControlMainDrawTab(Control: TCustomTabControl;
   TabIndex: integer; const Rect: TRect; Active: boolean);
 begin
     PageControl_DrawVerticalTab(Control, TabIndex, Rect, Active);
+end;
+
+procedure TPanalibuiMainForm.RichEdit1KeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+var
+    curr_line: string;
+    row, col: integer;
+begin
+    case Key of
+        VK_RETURN:
+            with RichEdit1 do
+            begin
+                row := RichEdit1.Perform(EM_LINEFROMCHAR,
+                  RichEdit1.SelStart, 0);
+                col := SelStart - Perform(EM_LINEINDEX, row, 0);
+                curr_line := Lines[row];
+                PanelTopMessage.Caption := '[' + curr_line + ']';
+
+                if (col < Length(curr_line) - 1) then
+                    Key := VK_END
+                else
+                    Key := 0;
+                ServerApp.MustSendStr(Handle, dmsgPerformTextCommand,
+                  curr_line);
+            end;
+
+    end;
 end;
 
 procedure TPanalibuiMainForm.WMActivateApp(var AMessage: TMessage);
