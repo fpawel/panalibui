@@ -69,6 +69,11 @@ type
         Button6: TButton;
         TabSheetConsole: TTabSheet;
         Panel2: TPanel;
+        Panel3: TPanel;
+        Panel5: TPanel;
+        Panel6: TPanel;
+        Label3: TLabel;
+        ComboBox1: TComboBox;
         procedure FormCreate(Sender: TObject);
         procedure PageControlMainDrawTab(Control: TCustomTabControl;
           TabIndex: integer; const Rect: TRect; Active: boolean);
@@ -79,8 +84,7 @@ type
         procedure Button2Click(Sender: TObject);
         procedure Button1Click(Sender: TObject);
         procedure Button4Click(Sender: TObject);
-        procedure Button6Click(Sender: TObject);
-        procedure RichEdit1KeyDown(Sender: TObject; var Key: Word;
+        procedure ComboBox1KeyDown(Sender: TObject; var Key: Word;
           Shift: TShiftState);
     private
         { Private declarations }
@@ -108,6 +112,20 @@ uses serverapp_msg, rest.json, runhostapp, json, vclutils,
     UnitFormReadVars, stringutils, model_network, ComponentBaloonHintU,
     richeditutils;
 
+function CommandsFileName: string;
+begin
+    result := ExtractFilePath(ParamStr(0)) + '\commands.txt'
+end;
+
+procedure TPanalibuiMainForm.FormCreate(Sender: TObject);
+begin
+    // SendMessage(hWndServer, WM_CLOSE, 0, 0);
+    if FileExists(CommandsFileName) then
+        ComboBox1.Items.LoadFromFile(CommandsFileName);
+
+end;
+
+
 procedure TPanalibuiMainForm.Button1Click(Sender: TObject);
 begin
     ServerApp.MustSendUserMsg(msgAddDelVar, 0, 0);
@@ -134,20 +152,41 @@ begin
     Close;
 end;
 
-procedure TPanalibuiMainForm.Button6Click(Sender: TObject);
+procedure TPanalibuiMainForm.ComboBox1KeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
 begin
+    with ComboBox1 do
+        case Key of
+            VK_DELETE:
+                begin
+                    if (ssCtrl in Shift) and (Items.IndexOf(Text) > -1) then
+                    begin
+                        Items.delete(Items.IndexOf(Text));
+                        Text := '';
+                    end;
 
-    // ShowBalloonTip(Edit1.Handle, 3, clDefault, clRed, 'input bad', 'not an integer');
-    // CloseWindow(FhWndTip);
-    // FhWndTip := Edit1.ShowBalloonTip(TIconKind.Eror_Large, 'Baloon Title',
-    // 'Baloon text');
+                end;
+            VK_RETURN:
+                begin
+                    Text := Trim(Text);
+                    if Text <> '' then
+                    begin
+                        ServerApp.MustSendStr(Handle,
+                          dmsgPerformTextCommand, Text);
+
+                        if Items.IndexOf(Text) > -1 then
+                            Items.Exchange(Items.IndexOf(Text), 0)
+                        else
+                            Items.insert(0, Text);
+                        Items.SaveToFile(CommandsFileName);
+                        Text := '';
+                    end;
+                    Key := 0;
+                end;
+
+        end;
 end;
 
-procedure TPanalibuiMainForm.FormCreate(Sender: TObject);
-begin
-    // SendMessage(hWndServer, WM_CLOSE, 0, 0);
-
-end;
 
 procedure TPanalibuiMainForm.HandleCopydata(var Message: TMessage);
 var
@@ -200,7 +239,8 @@ begin
             begin
                 response := TJson.JsonToObject<TPanalibTextMessage>
                   (StrFromCopydata(cd));
-                RichEdit_EnsureNewSingleLine(RichEdit1);
+                // RichEdit_DeleteEmptiLines(RichEdit1);
+                // RichEdit1.Lines.Add('');
                 SendMessage(RichEdit1.Handle, EM_SCROLL, SB_LINEDOWN, 0);
                 RichEdit1.SelStart := Length(RichEdit1.Text);
 
@@ -261,33 +301,6 @@ procedure TPanalibuiMainForm.PageControlMainDrawTab(Control: TCustomTabControl;
   TabIndex: integer; const Rect: TRect; Active: boolean);
 begin
     PageControl_DrawVerticalTab(Control, TabIndex, Rect, Active);
-end;
-
-procedure TPanalibuiMainForm.RichEdit1KeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-var
-    curr_line: string;
-    row, col: integer;
-begin
-    case Key of
-        VK_RETURN:
-            with RichEdit1 do
-            begin
-                row := RichEdit1.Perform(EM_LINEFROMCHAR,
-                  RichEdit1.SelStart, 0);
-                col := SelStart - Perform(EM_LINEINDEX, row, 0);
-                curr_line := Lines[row];
-                PanelTopMessage.Caption := '[' + curr_line + ']';
-
-                if (col < Length(curr_line) - 1) then
-                    Key := VK_END
-                else
-                    Key := 0;
-                ServerApp.MustSendStr(Handle, dmsgPerformTextCommand,
-                  curr_line);
-            end;
-
-    end;
 end;
 
 procedure TPanalibuiMainForm.WMActivateApp(var AMessage: TMessage);

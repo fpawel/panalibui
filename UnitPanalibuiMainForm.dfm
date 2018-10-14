@@ -20,7 +20,7 @@ object PanalibuiMainForm: TPanalibuiMainForm
     Top = 37
     Width = 1010
     Height = 457
-    ActivePage = TabSheetConsole
+    ActivePage = TabSheetCurrentChart
     Align = alClient
     MultiLine = True
     OwnerDraw = True
@@ -30,14 +30,9 @@ object PanalibuiMainForm: TPanalibuiMainForm
     TabWidth = 50
     OnChange = PageControlMainChange
     OnDrawTab = PageControlMainDrawTab
-    ExplicitTop = 32
-    ExplicitWidth = 1027
-    ExplicitHeight = 544
     object TabSheetVars: TTabSheet
       Caption = #1054#1087#1088#1086#1089
       ImageIndex = 2
-      ExplicitWidth = 919
-      ExplicitHeight = 536
       object Panel1: TPanel
         Left = 815
         Top = 0
@@ -46,8 +41,6 @@ object PanalibuiMainForm: TPanalibuiMainForm
         Align = alRight
         BevelOuter = bvNone
         TabOrder = 0
-        ExplicitLeft = 832
-        ExplicitHeight = 536
         object Label1: TLabel
           Left = 1
           Top = 144
@@ -131,26 +124,21 @@ object PanalibuiMainForm: TPanalibuiMainForm
           Height = 25
           Caption = #1042#1099#1087'.'
           TabOrder = 7
-          OnClick = Button6Click
         end
       end
     end
     object TabSheetCurrentChart: TTabSheet
       Caption = #1043#1088#1072#1092#1080#1082
       ImageIndex = 5
-      ExplicitWidth = 919
-      ExplicitHeight = 536
     end
     object TabSheetConsole: TTabSheet
       Caption = #1050#1086#1085#1089#1086#1083#1100
       ImageIndex = 4
-      ExplicitWidth = 919
-      ExplicitHeight = 536
       object RichEdit1: TRichEdit
         Left = 0
         Top = 0
         Width = 902
-        Height = 449
+        Height = 400
         Align = alClient
         BorderStyle = bsNone
         Font.Charset = RUSSIAN_CHARSET
@@ -159,25 +147,64 @@ object PanalibuiMainForm: TPanalibuiMainForm
         Font.Name = 'Tahoma'
         Font.Style = []
         ParentFont = False
+        ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 0
         Zoom = 100
-        OnKeyDown = RichEdit1KeyDown
-        ExplicitWidth = 919
-        ExplicitHeight = 536
+      end
+      object Panel3: TPanel
+        Left = 0
+        Top = 400
+        Width = 902
+        Height = 49
+        Align = alBottom
+        BevelOuter = bvNone
+        TabOrder = 1
+        object Panel5: TPanel
+          Left = 0
+          Top = 0
+          Width = 25
+          Height = 49
+          Align = alLeft
+          BevelOuter = bvNone
+          TabOrder = 0
+        end
+        object Panel6: TPanel
+          Left = 25
+          Top = 0
+          Width = 877
+          Height = 49
+          Align = alClient
+          BevelOuter = bvNone
+          TabOrder = 1
+          object Label3: TLabel
+            Left = 0
+            Top = 0
+            Width = 877
+            Height = 18
+            Align = alTop
+            Caption = #1042#1074#1086#1076' '#1082#1086#1084#1072#1085#1076':'
+            ExplicitWidth = 92
+          end
+          object ComboBox1: TComboBox
+            Left = 0
+            Top = 18
+            Width = 877
+            Height = 26
+            Align = alTop
+            TabOrder = 0
+            OnKeyDown = ComboBox1KeyDown
+          end
+        end
       end
     end
     object TabSheetSettings: TTabSheet
       Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080
       ImageIndex = 4
-      ExplicitWidth = 919
-      ExplicitHeight = 536
     end
     object TabSheetArchive: TTabSheet
       Caption = #1040#1088#1093#1080#1074
       ImageIndex = 1
-      ExplicitWidth = 919
-      ExplicitHeight = 536
     end
   end
   object Panel14: TPanel
@@ -188,9 +215,6 @@ object PanalibuiMainForm: TPanalibuiMainForm
     Align = alLeft
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitLeft = 123
-    ExplicitTop = 66
-    ExplicitHeight = 451
   end
   object Panel4: TPanel
     Left = 1015
@@ -200,9 +224,6 @@ object PanalibuiMainForm: TPanalibuiMainForm
     Align = alRight
     BevelOuter = bvNone
     TabOrder = 2
-    ExplicitLeft = 1032
-    ExplicitTop = 32
-    ExplicitHeight = 544
   end
   object Panel8: TPanel
     Left = 0
@@ -212,8 +233,6 @@ object PanalibuiMainForm: TPanalibuiMainForm
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 3
-    ExplicitTop = 582
-    ExplicitWidth = 1037
   end
   object PanelTopBar: TPanel
     Left = 0
@@ -233,8 +252,6 @@ object PanalibuiMainForm: TPanalibuiMainForm
     ParentColor = True
     ParentFont = False
     TabOrder = 4
-    ExplicitTop = 0
-    ExplicitWidth = 1037
     object ToolBarParty: TToolBar
       Left = 0
       Top = 0
@@ -285,7 +302,6 @@ object PanalibuiMainForm: TPanalibuiMainForm
       ParentColor = True
       ParentFont = False
       TabOrder = 1
-      ExplicitWidth = 1007
     end
   end
   object PanelComportStatus: TPanel
@@ -305,7 +321,6 @@ object PanalibuiMainForm: TPanalibuiMainForm
     ParentColor = True
     ParentFont = False
     TabOrder = 5
-    ExplicitTop = 500
   end
   object Panel2: TPanel
     Left = 0
@@ -326,7 +341,7 @@ object PanalibuiMainForm: TPanalibuiMainForm
     Left = 480
     Top = 178
     Bitmap = {
-      494C010109009C00FC0232003200FFFFFF002110FFFFFFFFFFFFFFFF424D3600
+      494C010109009C00040332003200FFFFFF002110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000C8000000960000000100200000000000C0D4
       0100000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -4222,7 +4237,7 @@ object PanalibuiMainForm: TPanalibuiMainForm
     Left = 472
     Top = 256
     Bitmap = {
-      494C0101030018018C0210001000FFFFFF002110FFFFFFFFFFFFFFFF424D3600
+      494C010103001801940210001000FFFFFF002110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -4371,7 +4386,7 @@ object PanalibuiMainForm: TPanalibuiMainForm
     Left = 544
     Top = 178
     Bitmap = {
-      494C01010300D401D00219001900FFFFFF002110FFFFFFFFFFFFFFFF424D3600
+      494C01010300D401D80219001900FFFFFF002110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000640000001900000001002000000000001027
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -4713,7 +4728,7 @@ object PanalibuiMainForm: TPanalibuiMainForm
     Left = 576
     Top = 266
     Bitmap = {
-      494C010102002403640314001400FFFFFF002110FFFFFFFFFFFFFFFF424D3600
+      494C0101020024036C0314001400FFFFFF002110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000500000001400000001002000000000000019
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

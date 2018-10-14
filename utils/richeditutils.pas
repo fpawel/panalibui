@@ -14,7 +14,7 @@ function RichEdit_CurrentlineNumber(re: TRichEdit): Integer;
 
 procedure RichEdit_PopupMenu(re: TRichEdit);
 
-procedure RichEdit_EnsureNewSingleLine(re: TRichEdit);
+procedure RichEdit_DeleteEmptiLines(re: TRichEdit);
 
 implementation
 
@@ -55,14 +55,18 @@ begin
     RichEdit1.SelText := text + #13;
 end;
 
-procedure RichEdit_EnsureNewSingleLine(re: TRichEdit);
+procedure RichEdit_DeleteEmptiLines(re: TRichEdit);
+var i:integer;
 begin
+    i := 0;
     with re do
     begin
-        while trim(Lines[Lines.Count-1]) = '' do
-            Lines.Delete(Lines.Count-1);
+        while I < lines.Count do
+            if trim(Lines[i]) = '' then
+                Lines.Delete(Lines.Count-1)
+            else
+                i := i + 1;
         Text := trim(text);
-        Lines.Add('');
     end;
 
 end;

@@ -30,16 +30,21 @@ type
     private
         { Private declarations }
         Last_Edited_Col, Last_Edited_Row: Integer;
+
+        FPlace: Integer;
+        FVarIndex: Integer;
+        FErrors: TDictionary<string, string>;
+        FNetwork: TNetwork;
+
+
+
         procedure SetRowChecked(row: Integer; v: Boolean);
         procedure ToggleRowChecked(row: Integer);
         procedure ToggleColChecked(col: Integer);
 
     public
         { Public declarations }
-        FPlace: Integer;
-        FVarIndex: Integer;
-        FErrors: TDictionary<string, string>;
-        FNetwork: TNetwork;
+
 
         procedure Init(ANetwork: TNetwork);
         procedure HandleReadVar(X: TReadVar);
