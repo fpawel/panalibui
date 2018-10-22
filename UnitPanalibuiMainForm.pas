@@ -14,8 +14,8 @@ const
     UM_VALIDATEINPUT = WM_USER + 100;
 
 type
-    THostAppCommand = (cmdError, cmdUserConfig, cmdNetwork, cmdComportOk,
-      cmdReadVar, cmdTextMessage);
+    THostAppCommand = (cmdUserConfig, cmdNetwork, cmdStatusText, cmdConsoleText,
+      cmdReadVar);
 
     TPlace = class
         FAddr: integer;
@@ -41,7 +41,7 @@ type
         Panel4: TPanel;
         Panel8: TPanel;
         RichEdit1: TRichEdit;
-        PanelComportStatus: TPanel;
+        PanelStatus: TPanel;
         PanelTopBar: TPanel;
         ToolBarParty: TToolBar;
         ToolButtonParty: TToolButton;
@@ -90,6 +90,9 @@ type
         { Private declarations }
         FhWndTip: THandle;
 
+        procedure SetStatusText(Ok: boolean; AText: string);
+        procedure AddConsoleText(Ok: boolean; AText: string);
+
         procedure HandleCopydata(var Message: TMessage); message WM_COPYDATA;
         procedure WMWindowPosChanged(var AMessage: TMessage);
           message WM_WINDOWPOSCHANGED;
@@ -124,7 +127,6 @@ begin
         ComboBox1.Items.LoadFromFile(CommandsFileName);
 
 end;
-
 
 procedure TPanalibuiMainForm.Button1Click(Sender: TObject);
 begin
@@ -187,36 +189,24 @@ begin
         end;
 end;
 
-
 procedure TPanalibuiMainForm.HandleCopydata(var Message: TMessage);
 var
     cd: PCOPYDATASTRUCT;
     cmd: THostAppCommand;
     response: TObject;
+    tm: TPanalibTextMessage;
+    read_var : TReadVar;
 begin
     cd := PCOPYDATASTRUCT(Message.LParam);
     cmd := THostAppCommand(Message.WParam);
+    Message.result := 1;
     case cmd of
-        cmdError:
-            with PanelComportStatus do
-            begin
-                Font.Color := clRed;
-                Caption := '   ' + StrFromCopydata(cd);
-            end;
-
-        cmdComportOk:
-            with PanelComportStatus do
-            begin
-                Font.Color := clNavy;
-                Caption := '   ' + StrFromCopydata(cd);
-            end;
-
         cmdUserConfig:
             begin
                 response := TJson.JsonToObject<TConfig>(StrFromCopydata(cd));
                 PropertiesForm.SetConfig(TConfig(response));
                 // cfg.Free;
-                Message.Result := 1;
+
             end;
 
         cmdNetwork:
@@ -224,41 +214,47 @@ begin
                 response := TJson.JsonToObject<TNetwork>(StrFromCopydata(cd));
                 FormReadVars.Init(TNetwork(response));
                 // network.Free;
-                Message.Result := 1;
+
             end;
 
         cmdReadVar:
             begin
-                response := TJson.JsonToObject<TReadVar>(StrFromCopydata(cd));
-                FormReadVars.HandleReadVar(TReadVar(response));
-                TReadVar(response).Free;
-                Message.Result := 1;
+                read_var := TJson.JsonToObject<TReadVar>(StrFromCopydata(cd));
+                FormReadVars.HandleReadVar(read_var);
+                if read_var.FError = '' then
+                begin
+
+                    SetStatusText(true, Format('%s: %g', [
+                        FormReadVars.FormatAddrPlace(read_var.FPlace, read_var.FVarIndex),
+                        read_var.FValue]));
+                end else
+                begin
+                    SetStatusText(false, Format('%s: %s', [
+                        FormReadVars.FormatAddrPlace(read_var.FPlace, read_var.FVarIndex),
+                        read_var.FError]));
+                end;
+                read_var.Free;
 
             end;
-        cmdTextMessage:
+        cmdStatusText:
             begin
                 response := TJson.JsonToObject<TPanalibTextMessage>
                   (StrFromCopydata(cd));
-                // RichEdit_DeleteEmptiLines(RichEdit1);
-                // RichEdit1.Lines.Add('');
-                SendMessage(RichEdit1.Handle, EM_SCROLL, SB_LINEDOWN, 0);
-                RichEdit1.SelStart := Length(RichEdit1.Text);
 
-                with TPanalibTextMessage(response) do
-                begin
+                tm := TPanalibTextMessage(response);
+                SetStatusText(tm.FOk, tm.FText);
+                tm.Free
+            end;
 
-                    if FOk then
-                        RichEdit_AddText(RichEdit1, now, clBlack, 0,
-                          false, FText)
-                    else
-                        RichEdit_AddText(RichEdit1, now, clRed, cl3dLight,
-                          true, FText);
-                    Free;
-                end;
+        cmdConsoleText:
+            begin
+                response := TJson.JsonToObject<TPanalibTextMessage>
+                  (StrFromCopydata(cd));
 
-                SendMessage(RichEdit1.Handle, EM_SCROLL, SB_LINEDOWN, 0);
-
-                Message.Result := 1;
+                tm := TPanalibTextMessage(response);
+                SetStatusText(tm.FOk, tm.FText);
+                AddConsoleText(tm.FOk, tm.FText);
+                tm.Free
             end;
     end;
 end;
@@ -313,6 +309,34 @@ procedure TPanalibuiMainForm.WMWindowPosChanged(var AMessage: TMessage);
 begin
     CloseWindow(FhWndTip);
     inherited;
+end;
+
+procedure TPanalibuiMainForm.SetStatusText(Ok: boolean; AText: string);
+begin
+    if Ok then
+        PanelStatus.Font.Color := clBlack
+    else
+        PanelStatus.Font.Color := clRed;
+    PanelStatus.Caption := AText;
+end;
+
+procedure TPanalibuiMainForm.AddConsoleText(Ok: boolean; AText: string);
+begin
+    with RichEdit1 do
+    begin
+        SendMessage(Handle, EM_SCROLL, SB_LINEDOWN, 0);
+        SelStart := Length(Text);
+        if Ok then
+        begin
+            RichEdit_AddText(RichEdit1, clBlack, AText);
+
+        end
+        else
+        begin
+            RichEdit_AddText2(RichEdit1, clRed, cl3dLight, AText);
+        end;
+        SendMessage(Handle, EM_SCROLL, SB_LINEDOWN, 0);
+    end;
 end;
 
 end.

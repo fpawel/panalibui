@@ -7,8 +7,11 @@ uses vcl.comctrls, Graphics, RichEdit;
 type
     TLogLevel = (llTrace, llDebug, llInfo, llWarning, llError);
 
-procedure RichEdit_AddText(RichEdit1: TRichEdit; dt: TDateTime;
-  font_color, back_color: TColor; has_back_color: boolean; text: string);
+procedure RichEdit_AddText(RichEdit1: TRichEdit;
+  font_color: TColor; text: string);
+
+procedure RichEdit_AddText2(RichEdit1: TRichEdit;
+  font_color, back_color: TColor; text: string);
 
 function RichEdit_CurrentlineNumber(re: TRichEdit): Integer;
 
@@ -40,18 +43,18 @@ begin
     r.Perform(EM_SETCHARFORMAT, SCF_SELECTION, lparam(@cf));
 end;
 
-procedure RichEdit_AddText(RichEdit1: TRichEdit; dt: TDateTime;
-  font_color, back_color: TColor; has_back_color: boolean; text: string);
-
+procedure RichEdit_AddText(RichEdit1: TRichEdit;
+  font_color: TColor; text: string);
 begin
-    //RichEdit1.SelAttributes.Color := clGreen;
-    // RichEdit1.SelAttributes.Style := [fsBold];
-    //RichEdit1.SelText := TimeToStr(dt) + ' ';
     RichEdit1.SelAttributes.Color := font_color;
+    RichEdit1.SelText := text + #13;
+end;
 
-    if has_back_color then
-        setBackcolor(RichEdit1, back_color);
-
+procedure RichEdit_AddText2(RichEdit1: TRichEdit;
+  font_color, back_color: TColor; text: string);
+begin
+    RichEdit1.SelAttributes.Color := font_color;
+    setBackcolor(RichEdit1, back_color);
     RichEdit1.SelText := text + #13;
 end;
 

@@ -45,6 +45,8 @@ type
     public
         { Public declarations }
 
+        function FormatAddrPlace(place,varindex:integer):string;
+
 
         procedure Init(ANetwork: TNetwork);
         procedure HandleReadVar(X: TReadVar);
@@ -168,10 +170,7 @@ begin
         s := '';
     cnv := grd.Canvas;
     cnv.Font.Assign(self.Font);
-    if (ARow > 0) and (ACol = 1) then
-    begin
-        cnv.Font.Color := clNavy;
-    end;
+    
 
     Checked_row := false;
     if var_ind > -1 then
@@ -464,7 +463,24 @@ begin
     ServerApp.SendMsg(msgSetPlaceChecked, col2place(col),
       lParam(FNetwork.FPlaces[col2place(col)].FUnchecked));
     StringGrid_RedrawCol(StringGrid1, col);
-
 end;
+
+function TFormReadVars.FormatAddrPlace(place, varindex:integer):string;
+var cl,ro:integer;
+    s1, s2:string;
+begin
+    cl := place2col(place);
+    ro := var2row(varindex);
+    if (cl >-1) AND (cl < StringGrid1.ColCount) then
+        s1 := StringGrid1.Cells[place2col(place), 0]
+    else
+        s1 := format('¹%d', [place+1]);
+    if (ro > -1 ) AND (ro < StringGrid1.RowCount) then
+        s2 := StringGrid1.Cells[ 0, var2row(varindex)]
+    else
+        s2 := format('¹%d', [varindex+1]);
+    result := s1 + ': ' + s2;
+end;
+
 
 end.
