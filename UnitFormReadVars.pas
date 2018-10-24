@@ -36,17 +36,17 @@ type
         FErrors: TDictionary<string, string>;
         FNetwork: TNetwork;
 
-
-
         procedure SetRowChecked(row: Integer; v: Boolean);
         procedure ToggleRowChecked(row: Integer);
         procedure ToggleColChecked(col: Integer);
 
+        function AddrByIndex(place: Integer): Integer;
+        function VarByIndex(varindex: Integer): Integer;
+
     public
         { Public declarations }
 
-        function FormatAddrPlace(place,varindex:integer):string;
-
+        function FormatAddrPlace(place, varindex: Integer): string;
 
         procedure Init(ANetwork: TNetwork);
         procedure HandleReadVar(X: TReadVar);
@@ -60,7 +60,8 @@ implementation
 
 {$R *.dfm}
 
-uses stringgridutils, stringutils, UnitFormPopup, UnitServerApp, serverapp_msg;
+uses stringgridutils, stringutils, UnitFormPopup, UnitServerApp, serverapp_msg,
+    UnitFormChartSeries;
 
 function TStringGridEx.GetInplaceEditor: TInplaceEdit;
 begin
@@ -82,19 +83,27 @@ begin
     Result := place + 1;
 end;
 
-function var2row(varIndex: Integer): Integer;
+function var2row(varindex: Integer): Integer;
 begin
-    Result := varIndex + 1;
+    Result := varindex + 1;
 end;
 
-function pvk(place, varIndex: Integer): string;
+function plk(place: Integer): string;
 begin
-    Result := inttostr(place) + '_' + inttostr(varIndex);
+    Result := inttostr(place) + '_';
+end;
+
+function pvk(place, varindex: Integer): string;
+begin
+    Result := inttostr(place) + '_' + inttostr(varindex);
 end;
 
 function pvkk(col, row: Integer): string;
 begin
-    Result := pvk(col2place(col), row2var(row));
+    if row = 0 then
+        exit(plk(col2place(col)))
+    else
+        exit(pvk(col2place(col), row2var(row)));
 end;
 
 procedure TFormReadVars.FormCreate(Sender: TObject);
@@ -121,12 +130,11 @@ begin
         pt := ScreenToClient(pt);
         MouseToCell(pt.X, pt.Y, ACol, ARow);
 
-        if (ACol=0) AND (ARow = 0) then
+        if (ACol = 0) AND (ARow = 0) then
         begin
-            ServerApp.SendMsg(msgToggle, 0,0);
+            ServerApp.SendMsg(msgToggle, 0, 0);
             exit;
         end;
-
 
         varInd := row2var(ACol);
         place := col2place(ARow);
@@ -170,7 +178,6 @@ begin
         s := '';
     cnv := grd.Canvas;
     cnv.Font.Assign(self.Font);
-    
 
     Checked_row := false;
     if var_ind > -1 then
@@ -189,12 +196,16 @@ begin
     else
         cnv.Brush.Color := clBtnFace;
 
+    if Checked_col and ((ARow = 0) or Checked_row) and
+      FErrors.ContainsKey(pvkk(ACol, ARow)) then
+    begin
+        cnv.Font.Color := clRed;
+
+    end;
+
     if (place >= 0) and (var_ind >= 0) and (place = FPlace) and
       (var_ind = FVarIndex) then
         cnv.Brush.Color := clInfoBk;
-
-    if FErrors.ContainsKey(pvk(place, var_ind)) then
-        cnv.Font.Color := clRed;
 
     if cnv.TextWidth(s) + 3 > Rect.Width then
         s := cut_str(s, cnv, Rect.Width);
@@ -267,10 +278,10 @@ begin
             fixedrows := 0;
             if True then
 
-            col := ACol;
+                col := ACol;
             row := ARow;
             Options := Options + [goEditing];
-            EditorMode := true;
+            EditorMode := True;
             with GetInplaceEditor() do
             begin
                 SelStart := 0;
@@ -298,6 +309,12 @@ var
     grd: TStringGrid;
 
 begin
+    if (ACol = 0) AND (ARow = 0) then
+    begin
+        CanSelect := false;
+        exit;
+    end;
+
     with Sender as TStringGrid do
     begin
         // When selecting a cell
@@ -432,6 +449,8 @@ begin
         FErrors.Remove(pvk(FPlace, FVarIndex));
         StringGrid1.Cells[place2col(FPlace), var2row(FVarIndex)] :=
           floattostr(X.FValue);
+        FormChartSeries.AddValue(AddrByIndex(X.FPlace), VarByIndex(X.FVarIndex),
+          X.FValue, now);
     end;
 
     if (prev_place >= 0) and (prev_var >= 0) then
@@ -441,6 +460,13 @@ begin
     if (FPlace >= 0) and (FVarIndex >= 0) then
         StringGrid_RedrawCell(StringGrid1, place2col(FPlace),
           var2row(FVarIndex));
+
+    if Pos('нет ответа', LowerCase(X.FError)) > 0 then
+        FErrors.AddOrSetValue(plk(FPlace), X.FError)
+    else
+        FErrors.Remove(plk(FPlace));
+
+    StringGrid_RedrawCell(StringGrid1, place2col(FPlace), 0);
 
 end;
 
@@ -465,22 +491,43 @@ begin
     StringGrid_RedrawCol(StringGrid1, col);
 end;
 
-function TFormReadVars.FormatAddrPlace(place, varindex:integer):string;
-var cl,ro:integer;
-    s1, s2:string;
+function TFormReadVars.FormatAddrPlace(place, varindex: Integer): string;
+var
+    cl, ro: Integer;
+    s1, s2: string;
 begin
     cl := place2col(place);
     ro := var2row(varindex);
-    if (cl >-1) AND (cl < StringGrid1.ColCount) then
+    if (cl > -1) AND (cl < StringGrid1.ColCount) then
         s1 := StringGrid1.Cells[place2col(place), 0]
     else
-        s1 := format('№%d', [place+1]);
-    if (ro > -1 ) AND (ro < StringGrid1.RowCount) then
-        s2 := StringGrid1.Cells[ 0, var2row(varindex)]
+        s1 := format('№%d', [place + 1]);
+    if (ro > -1) AND (ro < StringGrid1.RowCount) then
+        s2 := StringGrid1.Cells[0, var2row(varindex)]
     else
-        s2 := format('№%d', [varindex+1]);
-    result := s1 + ': ' + s2;
+        s2 := format('№%d', [varindex + 1]);
+    Result := s1 + ': ' + s2;
 end;
 
+function TFormReadVars.AddrByIndex(place: Integer): Integer;
+var
+    cl: Integer;
+begin
+    cl := place2col(place);
+    if (cl > -1) AND (cl < StringGrid1.ColCount) then
+        exit(strtoint(StringGrid1.Cells[cl, 0]));
+    exit(-1);
+end;
+
+function TFormReadVars.VarByIndex(varindex: Integer): Integer;
+var
+    ro: Integer;
+begin
+    ro := var2row(varindex);
+    if (ro > -1) AND (ro < StringGrid1.RowCount) then
+        exit(strtoint(StringGrid1.Cells[0, ro]));
+    exit(-1);
+
+end;
 
 end.

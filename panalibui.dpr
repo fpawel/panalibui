@@ -18,7 +18,8 @@ uses
   UnitServerApp in 'UnitServerApp.pas' {ServerApp: TDataModule},
   serverapp_msg in 'messages\serverapp_msg.pas',
   ComponentBaloonHintU in 'utils\ComponentBaloonHintU.pas',
-  richeditutils in 'utils\richeditutils.pas';
+  richeditutils in 'utils\richeditutils.pas',
+  UnitFormChartSeries in 'UnitFormChartSeries.pas' {FormChartSeries};
 
 {$R *.res}
 
@@ -30,5 +31,6 @@ begin
   Application.CreateForm(TPropertiesForm, PropertiesForm);
   Application.CreateForm(TFormReadVars, FormReadVars);
   Application.CreateForm(TFormPopup, FormPopup);
+  Application.CreateForm(TFormChartSeries, FormChartSeries);
   Application.Run;
 end.

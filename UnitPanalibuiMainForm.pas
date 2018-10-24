@@ -28,9 +28,6 @@ type
     end;
 
     TPanalibuiMainForm = class(TForm)
-        ImageList1: TImageList;
-        ImageList2: TImageList;
-        ImageList3: TImageList;
         ImageList4: TImageList;
         PageControlMain: TPageControl;
         TabSheetVars: TTabSheet;
@@ -40,13 +37,8 @@ type
         Panel14: TPanel;
         Panel4: TPanel;
         Panel8: TPanel;
-        RichEdit1: TRichEdit;
         PanelStatus: TPanel;
         PanelTopBar: TPanel;
-        ToolBarParty: TToolBar;
-        ToolButtonParty: TToolButton;
-        ToolButtonStop: TToolButton;
-        PanelTopMessage: TPanel;
         PopupMenu1: TPopupMenu;
         N4: TMenuItem;
         N5: TMenuItem;
@@ -56,24 +48,36 @@ type
         N8: TMenuItem;
         N6: TMenuItem;
         N7: TMenuItem;
-        Panel1: TPanel;
-        Button1: TButton;
-        Button2: TButton;
-        Button3: TButton;
-        Button4: TButton;
-        Button5: TButton;
-        Label1: TLabel;
-        Edit1: TEdit;
-        Label2: TLabel;
-        Edit2: TEdit;
-        Button6: TButton;
         TabSheetConsole: TTabSheet;
         Panel2: TPanel;
-        Panel3: TPanel;
-        Panel5: TPanel;
-        Panel6: TPanel;
-        Label3: TLabel;
-        ComboBox1: TComboBox;
+    PanelInput: TPanel;
+    Panel3: TPanel;
+    Panel6: TPanel;
+    ComboBox1: TComboBox;
+    RichEdit1: TRichEdit;
+    PanelNetwork: TPanel;
+    Splitter1: TSplitter;
+    Panel5: TPanel;
+    PanelConsoleHeader: TPanel;
+    ToolBar4: TToolBar;
+    ToolButtonConsoleHide: TToolButton;
+    ImageList3: TImageList;
+    Splitter2: TSplitter;
+    ToolBarParty: TToolBar;
+    Button3: TButton;
+    Button2: TButton;
+    Button1: TButton;
+    Button4: TButton;
+    ToolButton1: TToolButton;
+    ToolButton2: TToolButton;
+    Panel1: TPanel;
+    ToolBar1: TToolBar;
+    ToolButton3: TToolButton;
+    ToolButton4: TToolButton;
+    ToolButton5: TToolButton;
+    ToolButton6: TToolButton;
+    ImageList1: TImageList;
+    Button5: TButton;
         procedure FormCreate(Sender: TObject);
         procedure PageControlMainDrawTab(Control: TCustomTabControl;
           TabIndex: integer; const Rect: TRect; Active: boolean);
@@ -86,6 +90,7 @@ type
         procedure Button4Click(Sender: TObject);
         procedure ComboBox1KeyDown(Sender: TObject; var Key: Word;
           Shift: TShiftState);
+    procedure ToolButtonConsoleHideClick(Sender: TObject);
     private
         { Private declarations }
         FhWndTip: THandle;
@@ -113,7 +118,7 @@ implementation
 uses serverapp_msg, rest.json, runhostapp, json, vclutils,
     model_config, PropertiesFormUnit,
     UnitFormReadVars, stringutils, model_network, ComponentBaloonHintU,
-    richeditutils;
+    richeditutils, UnitFormChartSeries;
 
 function CommandsFileName: string;
 begin
@@ -122,6 +127,7 @@ end;
 
 procedure TPanalibuiMainForm.FormCreate(Sender: TObject);
 begin
+    ToolButtonConsoleHideClick(nil);
     // SendMessage(hWndServer, WM_CLOSE, 0, 0);
     if FileExists(CommandsFileName) then
         ComboBox1.Items.LoadFromFile(CommandsFileName);
@@ -159,6 +165,7 @@ procedure TPanalibuiMainForm.ComboBox1KeyDown(Sender: TObject; var Key: Word;
 begin
     with ComboBox1 do
         case Key of
+
             VK_DELETE:
                 begin
                     if (ssCtrl in Shift) and (Items.IndexOf(Text) > -1) then
@@ -195,7 +202,7 @@ var
     cmd: THostAppCommand;
     response: TObject;
     tm: TPanalibTextMessage;
-    read_var : TReadVar;
+    read_var: TReadVar;
 begin
     cd := PCOPYDATASTRUCT(Message.LParam);
     cmd := THostAppCommand(Message.WParam);
@@ -224,14 +231,18 @@ begin
                 if read_var.FError = '' then
                 begin
 
-                    SetStatusText(true, Format('%s: %g', [
-                        FormReadVars.FormatAddrPlace(read_var.FPlace, read_var.FVarIndex),
-                        read_var.FValue]));
-                end else
+
+                    SetStatusText(true,
+                      Format('%s: %g',
+                      [FormReadVars.FormatAddrPlace(read_var.FPlace,
+                      read_var.FVarIndex), read_var.FValue]));
+                end
+                else
                 begin
-                    SetStatusText(false, Format('%s: %s', [
-                        FormReadVars.FormatAddrPlace(read_var.FPlace, read_var.FVarIndex),
-                        read_var.FError]));
+                    SetStatusText(false,
+                      Format('%s: %s',
+                      [FormReadVars.FormatAddrPlace(read_var.FPlace,
+                      read_var.FVarIndex), read_var.FError]));
                 end;
                 read_var.Free;
 
@@ -281,8 +292,18 @@ begin
         Font.Assign(Self.Font);
         BorderStyle := bsNone;
         Align := alClient;
-        Parent := TabSheetVars;
+        Parent := PanelNetwork;
         Show;
+    end;
+
+    with FormChartSeries do
+    begin
+        Parent := TabSheetVars;
+        Align := alClient;
+        BorderStyle := bsNone;
+        Visible := True;
+        Font.Assign(self.Font);
+        NewChart;
     end;
 
     ServerApp.MustSendUserMsg(msgPeer, 0, 0);
@@ -318,6 +339,24 @@ begin
     else
         PanelStatus.Font.Color := clRed;
     PanelStatus.Caption := AText;
+end;
+
+procedure TPanalibuiMainForm.ToolButtonConsoleHideClick(Sender: TObject);
+begin
+    if PanelInput.Height > 32 then
+    begin
+        PanelInput.Height := 32;
+        ToolButtonConsoleHide.ImageIndex := 1;
+        Splitter2.Visible := false;
+    end else
+    begin
+        Splitter2.Visible := true;
+                  Splitter2.Top := 0;
+        PanelInput.Height := 150;
+        ToolButtonConsoleHide.ImageIndex := 0;
+    end;
+
+
 end;
 
 procedure TPanalibuiMainForm.AddConsoleText(Ok: boolean; AText: string);
