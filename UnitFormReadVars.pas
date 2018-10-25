@@ -392,6 +392,7 @@ begin
 
     FNetwork := ANetwork;
     FErrors.Clear;
+    StringGrid_Clear(StringGrid1);
     with StringGrid1 do
     begin
         RowCount := Length(FNetwork.FVars) + 1;

@@ -31,14 +31,12 @@ type
         ImageList4: TImageList;
         PageControlMain: TPageControl;
         TabSheetVars: TTabSheet;
-        TabSheetCurrentChart: TTabSheet;
         TabSheetSettings: TTabSheet;
         TabSheetArchive: TTabSheet;
         Panel14: TPanel;
         Panel4: TPanel;
         Panel8: TPanel;
         PanelStatus: TPanel;
-        PanelTopBar: TPanel;
         PopupMenu1: TPopupMenu;
         N4: TMenuItem;
         N5: TMenuItem;
@@ -48,7 +46,6 @@ type
         N8: TMenuItem;
         N6: TMenuItem;
         N7: TMenuItem;
-        TabSheetConsole: TTabSheet;
         Panel2: TPanel;
         PanelInput: TPanel;
         RichEdit1: TRichEdit;
@@ -60,13 +57,6 @@ type
         ToolButtonConsoleHide: TToolButton;
         ImageList3: TImageList;
         Splitter2: TSplitter;
-        ToolBarParty: TToolBar;
-        Button3: TButton;
-        Button2: TButton;
-        Button1: TButton;
-        Button4: TButton;
-        ToolButton1: TToolButton;
-        ToolButton2: TToolButton;
         Panel1: TPanel;
         ToolBar1: TToolBar;
         ToolButton3: TToolButton;
@@ -74,7 +64,6 @@ type
         ToolButton5: TToolButton;
         ToolButton6: TToolButton;
         ImageList1: TImageList;
-        Button5: TButton;
         ComboBox1: TComboBox;
         procedure FormCreate(Sender: TObject);
         procedure PageControlMainDrawTab(Control: TCustomTabControl;
