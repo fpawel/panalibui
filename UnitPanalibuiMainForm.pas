@@ -50,47 +50,49 @@ type
         N7: TMenuItem;
         TabSheetConsole: TTabSheet;
         Panel2: TPanel;
-    PanelInput: TPanel;
-    Panel3: TPanel;
-    Panel6: TPanel;
-    ComboBox1: TComboBox;
-    RichEdit1: TRichEdit;
-    PanelNetwork: TPanel;
-    Splitter1: TSplitter;
-    Panel5: TPanel;
-    PanelConsoleHeader: TPanel;
-    ToolBar4: TToolBar;
-    ToolButtonConsoleHide: TToolButton;
-    ImageList3: TImageList;
-    Splitter2: TSplitter;
-    ToolBarParty: TToolBar;
-    Button3: TButton;
-    Button2: TButton;
-    Button1: TButton;
-    Button4: TButton;
-    ToolButton1: TToolButton;
-    ToolButton2: TToolButton;
-    Panel1: TPanel;
-    ToolBar1: TToolBar;
-    ToolButton3: TToolButton;
-    ToolButton4: TToolButton;
-    ToolButton5: TToolButton;
-    ToolButton6: TToolButton;
-    ImageList1: TImageList;
-    Button5: TButton;
+        PanelInput: TPanel;
+        RichEdit1: TRichEdit;
+        PanelNetwork: TPanel;
+        Splitter1: TSplitter;
+        Panel5: TPanel;
+        PanelConsoleHeader: TPanel;
+        ToolBar4: TToolBar;
+        ToolButtonConsoleHide: TToolButton;
+        ImageList3: TImageList;
+        Splitter2: TSplitter;
+        ToolBarParty: TToolBar;
+        Button3: TButton;
+        Button2: TButton;
+        Button1: TButton;
+        Button4: TButton;
+        ToolButton1: TToolButton;
+        ToolButton2: TToolButton;
+        Panel1: TPanel;
+        ToolBar1: TToolBar;
+        ToolButton3: TToolButton;
+        ToolButton4: TToolButton;
+        ToolButton5: TToolButton;
+        ToolButton6: TToolButton;
+        ImageList1: TImageList;
+        Button5: TButton;
+        ComboBox1: TComboBox;
         procedure FormCreate(Sender: TObject);
         procedure PageControlMainDrawTab(Control: TCustomTabControl;
           TabIndex: integer; const Rect: TRect; Active: boolean);
         procedure PageControlMainChange(Sender: TObject);
         procedure FormShow(Sender: TObject);
         procedure Button5Click(Sender: TObject);
-        procedure Button3Click(Sender: TObject);
-        procedure Button2Click(Sender: TObject);
-        procedure Button1Click(Sender: TObject);
-        procedure Button4Click(Sender: TObject);
         procedure ComboBox1KeyDown(Sender: TObject; var Key: Word;
           Shift: TShiftState);
-    procedure ToolButtonConsoleHideClick(Sender: TObject);
+        procedure ToolButtonConsoleHideClick(Sender: TObject);
+        procedure ToolButton4MouseMove(Sender: TObject; Shift: TShiftState;
+          X, Y: integer);
+        procedure ToolButton6MouseMove(Sender: TObject; Shift: TShiftState;
+          X, Y: integer);
+        procedure ToolButton3Click(Sender: TObject);
+        procedure ToolButton4Click(Sender: TObject);
+        procedure ToolButton5Click(Sender: TObject);
+        procedure ToolButton6Click(Sender: TObject);
     private
         { Private declarations }
         FhWndTip: THandle;
@@ -118,7 +120,7 @@ implementation
 uses serverapp_msg, rest.json, runhostapp, json, vclutils,
     model_config, PropertiesFormUnit,
     UnitFormReadVars, stringutils, model_network, ComponentBaloonHintU,
-    richeditutils, UnitFormChartSeries;
+    richeditutils, UnitFormChartSeries, Unit1;
 
 function CommandsFileName: string;
 begin
@@ -126,32 +128,21 @@ begin
 end;
 
 procedure TPanalibuiMainForm.FormCreate(Sender: TObject);
+//var n:integer;
 begin
     ToolButtonConsoleHideClick(nil);
     // SendMessage(hWndServer, WM_CLOSE, 0, 0);
     if FileExists(CommandsFileName) then
         ComboBox1.Items.LoadFromFile(CommandsFileName);
 
-end;
+//    for n := 0 to DataModule1.IdHTTPServer1.Bindings.Count - 1 do
+//    begin
+//        with DataModule1.IdHTTPServer1.Bindings[n] do
+//        begin
+//            Richedit1.Lines.Add(ip + ':' + IntToStr(Port));
+//        end;
+//    end;
 
-procedure TPanalibuiMainForm.Button1Click(Sender: TObject);
-begin
-    ServerApp.MustSendUserMsg(msgAddDelVar, 0, 0);
-end;
-
-procedure TPanalibuiMainForm.Button2Click(Sender: TObject);
-begin
-    ServerApp.MustSendUserMsg(msgAddDelPlace, 1, 0);
-end;
-
-procedure TPanalibuiMainForm.Button3Click(Sender: TObject);
-begin
-    ServerApp.MustSendUserMsg(msgAddDelPlace, 0, 0);
-end;
-
-procedure TPanalibuiMainForm.Button4Click(Sender: TObject);
-begin
-    ServerApp.MustSendUserMsg(msgAddDelVar, 1, 0);
 end;
 
 procedure TPanalibuiMainForm.Button5Click(Sender: TObject);
@@ -168,10 +159,13 @@ begin
 
             VK_DELETE:
                 begin
-                    if (ssCtrl in Shift) and (Items.IndexOf(Text) > -1) then
+                    if (ssCtrl in Shift) and (Items.IndexOf(ComboBox1.Text) > -1)
+                    then
                     begin
-                        Items.delete(Items.IndexOf(Text));
-                        Text := '';
+                        Key := 0;
+                        Items.delete(Items.IndexOf(ComboBox1.Text));
+                        Items.SaveToFile(CommandsFileName);
+                        ComboBox1.Text := '';
                     end;
 
                 end;
@@ -206,22 +200,21 @@ var
 begin
     cd := PCOPYDATASTRUCT(Message.LParam);
     cmd := THostAppCommand(Message.WParam);
+
     Message.result := 1;
+
     case cmd of
+
         cmdUserConfig:
             begin
                 response := TJson.JsonToObject<TConfig>(StrFromCopydata(cd));
                 PropertiesForm.SetConfig(TConfig(response));
-                // cfg.Free;
-
             end;
 
         cmdNetwork:
             begin
                 response := TJson.JsonToObject<TNetwork>(StrFromCopydata(cd));
                 FormReadVars.Init(TNetwork(response));
-                // network.Free;
-
             end;
 
         cmdReadVar:
@@ -230,8 +223,6 @@ begin
                 FormReadVars.HandleReadVar(read_var);
                 if read_var.FError = '' then
                 begin
-
-
                     SetStatusText(true,
                       Format('%s: %g',
                       [FormReadVars.FormatAddrPlace(read_var.FPlace,
@@ -245,13 +236,12 @@ begin
                       read_var.FVarIndex), read_var.FError]));
                 end;
                 read_var.Free;
-
             end;
+
         cmdStatusText:
             begin
                 response := TJson.JsonToObject<TPanalibTextMessage>
                   (StrFromCopydata(cd));
-
                 tm := TPanalibTextMessage(response);
                 SetStatusText(tm.FOk, tm.FText);
                 tm.Free
@@ -261,7 +251,6 @@ begin
             begin
                 response := TJson.JsonToObject<TPanalibTextMessage>
                   (StrFromCopydata(cd));
-
                 tm := TPanalibTextMessage(response);
                 SetStatusText(tm.FOk, tm.FText);
                 AddConsoleText(tm.FOk, tm.FText);
@@ -301,8 +290,8 @@ begin
         Parent := TabSheetVars;
         Align := alClient;
         BorderStyle := bsNone;
-        Visible := True;
-        Font.Assign(self.Font);
+        Visible := true;
+        Font.Assign(Self.Font);
         NewChart;
     end;
 
@@ -341,6 +330,47 @@ begin
     PanelStatus.Caption := AText;
 end;
 
+procedure TPanalibuiMainForm.ToolButton3Click(Sender: TObject);
+begin
+    ServerApp.MustSendUserMsg(msgAddDelPlace, 0, 0);
+end;
+
+procedure TPanalibuiMainForm.ToolButton4Click(Sender: TObject);
+begin
+    ServerApp.MustSendUserMsg(msgAddDelPlace, 1, 0);
+end;
+
+procedure TPanalibuiMainForm.ToolButton4MouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: integer);
+begin
+    with FormReadVars.StringGrid1 do
+    begin
+        ToolButton4.Hint := 'Удалить адрес ' + Cells[Colcount - 1, 0];
+
+    end;
+
+end;
+
+procedure TPanalibuiMainForm.ToolButton5Click(Sender: TObject);
+begin
+    ServerApp.MustSendUserMsg(msgAddDelVar, 0, 0);
+end;
+
+procedure TPanalibuiMainForm.ToolButton6Click(Sender: TObject);
+begin
+    ServerApp.MustSendUserMsg(msgAddDelVar, 1, 0);
+end;
+
+procedure TPanalibuiMainForm.ToolButton6MouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: integer);
+begin
+    with FormReadVars.StringGrid1 do
+    begin
+        ToolButton6.Hint := 'Удалить регистр ' + Cells[0, rowcount - 1];
+
+    end;
+end;
+
 procedure TPanalibuiMainForm.ToolButtonConsoleHideClick(Sender: TObject);
 begin
     if PanelInput.Height > 32 then
@@ -348,14 +378,14 @@ begin
         PanelInput.Height := 32;
         ToolButtonConsoleHide.ImageIndex := 1;
         Splitter2.Visible := false;
-    end else
+    end
+    else
     begin
         Splitter2.Visible := true;
-                  Splitter2.Top := 0;
+        Splitter2.Top := 0;
         PanelInput.Height := 150;
         ToolButtonConsoleHide.ImageIndex := 0;
     end;
-
 
 end;
 
@@ -364,7 +394,7 @@ begin
     with RichEdit1 do
     begin
         SendMessage(Handle, EM_SCROLL, SB_LINEDOWN, 0);
-        SelStart := Length(Text);
+        SelStart := Length(RichEdit1.Text);
         if Ok then
         begin
             RichEdit_AddText(RichEdit1, clBlack, AText);
@@ -374,6 +404,7 @@ begin
         begin
             RichEdit_AddText2(RichEdit1, clRed, cl3dLight, AText);
         end;
+
         SendMessage(Handle, EM_SCROLL, SB_LINEDOWN, 0);
     end;
 end;

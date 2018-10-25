@@ -35,6 +35,7 @@ type
         FVarIndex: Integer;
         FErrors: TDictionary<string, string>;
         FNetwork: TNetwork;
+        FInitialized:boolean;
 
         procedure SetRowChecked(row: Integer; v: Boolean);
         procedure ToggleRowChecked(row: Integer);
@@ -111,6 +112,7 @@ begin
     FPlace := -1;
     FVarIndex := -1;
     FErrors := TDictionary<string, string>.Create;
+    FInitialized := false;
 
 end;
 
@@ -196,8 +198,7 @@ begin
     else
         cnv.Brush.Color := clBtnFace;
 
-    if Checked_col and ((ARow = 0) or Checked_row) and
-      FErrors.ContainsKey(pvkk(ACol, ARow)) then
+    if FErrors.ContainsKey(pvkk(ACol, ARow)) then
     begin
         cnv.Font.Color := clRed;
 
@@ -411,6 +412,7 @@ begin
         end;
     end;
     StringGrid_Redraw(StringGrid1);
+    FInitialized := true;
 end;
 
 procedure TFormReadVars.reset;
@@ -434,7 +436,10 @@ end;
 procedure TFormReadVars.HandleReadVar(X: TReadVar);
 var
     prev_place, prev_var: Integer;
+    prev_place_err : boolean;
 begin
+    if not FInitialized then
+        exit;
     prev_place := FPlace;
     prev_var := FVarIndex;
     FPlace := X.FPlace;
@@ -461,12 +466,14 @@ begin
         StringGrid_RedrawCell(StringGrid1, place2col(FPlace),
           var2row(FVarIndex));
 
+    prev_place_err := FErrors.ContainsKey(plk(FPlace));
+
     if Pos('нет ответа', LowerCase(X.FError)) > 0 then
         FErrors.AddOrSetValue(plk(FPlace), X.FError)
     else
         FErrors.Remove(plk(FPlace));
-
-    StringGrid_RedrawCell(StringGrid1, place2col(FPlace), 0);
+    if prev_place_err <>  FErrors.ContainsKey(plk(FPlace)) then
+        StringGrid_RedrawCell(StringGrid1, place2col(FPlace), 0);
 
 end;
 
@@ -514,8 +521,9 @@ var
     cl: Integer;
 begin
     cl := place2col(place);
-    if (cl > -1) AND (cl < StringGrid1.ColCount) then
-        exit(strtoint(StringGrid1.Cells[cl, 0]));
+    if (cl > 0) AND (cl < StringGrid1.ColCount) then
+        if TryStrToInt(StringGrid1.Cells[cl, 0], result) then
+            exit(result);
     exit(-1);
 end;
 
@@ -524,8 +532,9 @@ var
     ro: Integer;
 begin
     ro := var2row(varindex);
-    if (ro > -1) AND (ro < StringGrid1.RowCount) then
-        exit(strtoint(StringGrid1.Cells[0, ro]));
+    if (ro > 0) AND (ro < StringGrid1.RowCount) then
+        if TryStrToInt(StringGrid1.Cells[0, ro], result) then
+            exit(result);
     exit(-1);
 
 end;

@@ -129,37 +129,45 @@ var
     k: ProductVar;
     sl: TStringList;
     n, i: integer;
-    sel: array of boolean;
+    selected_vars: TDictionary<string,integer>;
 begin
+
 
     k.ProductSerial := addr;
     k.VarID := var_id;
     if ListBox1.Items.IndexOf(inttostr(var_id)) = -1 then
     begin
         n := ListBox1.Items.Add(inttostr(var_id));
-        ListBox1.Selected[n] := n = 0;
+        if var_id = 0 then
+            ListBox1.Selected[n] := true;
 
-        SetLength(sel, ListBox1.Items.Count);
+        selected_vars:=TDictionary<string,integer>.create;
+
         for i := 0 to ListBox1.Items.Count - 1 do
-            sel[i] := ListBox1.Selected[i];
+            if ListBox1.Selected[i] then
+                 selected_vars.AddOrSetValue(ListBox1.Items[i],0);
 
         sl := TStringList.create;
         sl.Assign(ListBox1.Items);
         sl.CustomSort(CompareVars);
         ListBox1.Items.Assign(sl);
         sl.Free;
-
         for i := 0 to ListBox1.Items.Count - 1 do
-            ListBox1.Selected[i] := sel[i];
+            ListBox1.Selected[i] := selected_vars.ContainsKey(ListBox1.Items[i]);
+
+        selected_vars.Free;
     end;
+
+
+
     if not FSeries.TryGetValue(k, ser) then
     begin
         ser := TFastLineSeries.create(nil);
         ser.XValues.DateTime := true;
         ser.title := IntToStr(addr) + ':' + inttostr(var_id);
         FSeries.Add(k, ser);
-
     end;
+
     ser.AddXY(time, value);
 
     with ListBox1 do
@@ -170,6 +178,8 @@ begin
                 Chart1.AddSeries(ser);
         end;
     end;
+
+
 
 end;
 
